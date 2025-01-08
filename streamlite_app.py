@@ -27,6 +27,19 @@ if "cereal_scaling" not in st.session_state:
 if "cereals" not in st.session_state:
     st.session_state["cereals"] = 0
 
+if "first_run" not in st.session_state:
+    st.session_state["first_run"] = True
+
+if "show_afolu_only" not in st.session_state:
+    st.session_state["show_afolu_only"] = False
+
+if "ssr_metric" not in st.session_state:
+    st.session_state["ssr_metric"] = "g/cap/day"
+
+if "plot_key" not in st.session_state:
+    st.session_state["plot_key"] = "Summary"
+
+
 # ------------------------
 # Help and tooltip strings
 # ------------------------
@@ -41,6 +54,10 @@ st.set_page_config(layout='wide',
 with open('utils/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
+if st.session_state.first_run:
+    st.session_state.first_run = False
+    first_run_dialog()
+
 with st.sidebar:
 
 # ------------------------
@@ -48,13 +65,21 @@ with st.sidebar:
 # ------------------------
 
     col1, col2 = st.columns([7.5,2.5])
-    with col1:
-        st.selectbox("Scenario", get_pathways(),
-                     help=help_str(help, "sidebar_consumer", 8),
-                     on_change=call_scenarios, key="scenario")
 
-    with col2:
-        st.button("Reset \n sliders", on_click=reset_sliders, key='reset_all')
+    if "scenario" in st.query_params:
+        scenario = st.query_params["scenario"]
+        call_scenarios(scenario)
+    
+        st.selectbox("Scenario", get_pathways(), index=None, placeholder=scenario,
+                        help=help_str(help, "sidebar_consumer", 8),
+                        on_change=call_scenarios, key="scenario")
+    
+    else:
+        st.selectbox("Scenario", get_pathways(), index=None, placeholder="Select a scenario",
+                        help=help_str(help, "sidebar_consumer", 8),
+                        on_change=call_scenarios, key="scenario")
+        
+    st.query_params.clear()
 
     # Consumer demand interventions
 
@@ -103,24 +128,28 @@ with st.sidebar:
 
     with st.expander("**:earth_africa: Land use change**"):
 
-        land_slider_keys = ["foresting_pasture", "land_beccs"]
+        land_slider_keys = ["foresting_pasture", "land_beccs", "peatland", "soil_carbon", "mixed_farming"]
 
         foresting_pasture = st.slider('Forested pasture land fraction',
                         min_value=0, max_value=100, step=1,
                         key="foresting_pasture", help=help["sidebar_land"][0])        
 
-        # arable_sparing = st.slider('Spared arable land fraction',
-        #                 min_value=0, max_value=100, step=1,
-        #                 key="arable_sparing", help=help["sidebar_land"][1])
-
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
                         min_value=0, max_value=20, step=1,
-                        key="land_beccs", help=help["sidebar_innovation"][2])
+                        key="land_beccs", help=help["sidebar_innovation"][1])
 
-        # foresting_spared = st.slider('Forested spared land fraction',
-        #                 min_value=0, max_value=100, step=1,
-        #                 key="foresting_spared", help=help["sidebar_land"][2])
+        peatland = st.slider('Percentage of peatland restored',
+                             min_value=0, max_value=100, step=1,
+                             key="peatland", help=help["sidebar_land"][2])
+
+        soil_carbon = st.slider('Percentage of managed land for soil carbon management',
+                                 min_value=0, max_value=100, step=1,
+                                 key="soil_carbon", help=help["sidebar_land"][3])
         
+        mixed_farming = st.slider('Percentage of agricultural land converted to mixed farming',
+                                  min_value=0, max_value=100, step=1,
+                                  key="mixed_farming", help=help["sidebar_land"][4])
+
         st.button("Reset", on_click=reset_sliders, key='reset_land',
                   kwargs={"keys":[land_slider_keys, "land_bar"]})
         
@@ -310,10 +339,12 @@ with st.sidebar:
             
             scaling_nutrient = 'kCal/cap/day'              
 
+    st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
+    
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
     
-    st.caption('''--- We would be grateful for your feedback, via
-                [this form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link).''')
+    st.caption('''--- We would be grateful for your feedback - 
+               [Fill in our Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link).''')
     
     st.caption('''--- For a list of references to the datasets used, please
                 visit our [reference document](https://docs.google.com/spreadsheets/d/1XkOELCFKHTAywUGoJU6Mb0TjXESOv5BbR67j9UCMEgw/edit?usp=sharing).''')
@@ -458,17 +489,23 @@ food_system.add_step(spare_alc_model,
                         "land_type":["Improved grassland", "Semi-natural grassland"],
                         "items":"Animal Products"})
 
-# food_system.add_step(spare_alc_model,
-#                         {"spare_fraction":arable_sparing/100,
-#                         "land_type":["Arable"],
-#                         "items":"Vegetal Products"})
-
 food_system.add_step(foresting_spared_model,
                         {"forest_fraction":1,
                         "bdleaf_conif_ratio":st.session_state.bdleaf_conif_ratio/100})
 
 food_system.add_step(BECCS_farm_land,
                         {"farm_percentage":land_BECCS/100})
+
+food_system.add_step(peatland_restoration,
+                     {"fraction":peatland/100})
+
+food_system.add_step(soil_carbon_sequestration,
+                     {"fraction":soil_carbon/100})
+
+food_system.add_step(mixed_farming_model,
+                     {"fraction":mixed_farming/100})
+
+
 
 # Livestock farming practices        
 food_system.add_step(agroecology_model,

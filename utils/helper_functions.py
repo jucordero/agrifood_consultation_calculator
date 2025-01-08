@@ -32,6 +32,9 @@ default_widget_values = {
     "land_bar": 0,
     "foresting_pasture": 0,
     "land_beccs": 0,
+    "peatland": 0,
+    "soil_carbon": 0,
+    "mixed_farming": 0,
 
     # Technology and innovation sliders and widgets
     "innovation_bar": 0,
@@ -111,3 +114,42 @@ def help_str(help, sidebar_key, row_index, heading_key=None):
         help_string = f"[{help_string}]({doc_str}{heading_key})"
 
     return help_string
+
+@st.dialog("Agrifood Calculator", width="large")
+def first_run_dialog():
+
+    st.write("""The Agrifood Calculator provides a model of the UK agrifood
+            system that allows you to explore pathways for how we might reduce
+            the UK’s greenhouse gas emissions to net zero by 2050 through
+            agriculture and food.""")
+    
+    st.write("""Choose your interventions for reducing emissions or increasing
+            sequestration, set the level for where you want the intervention
+            to be, and the calculator shows how your choices affect UK emissions,
+            land use and UK self-sufficiency.""")
+    
+    _, col2, _ = st.columns([0.5, 1, 0.5])
+    with col2:
+        st.image("images/slider_gif_intro.gif")
+    
+    st.write("""Its purpose is to help everyone engage in the debate and explore how
+            different plans support the path to net zero.""")
+             
+    st.write("""The Agrifood Calculator was developed with funding from [FixOurFood](https://fixourfood.org/).
+            It was conceived as a tool to support evidence based policy making
+            and to engage food system stakeholders in a conversation about
+            pathways to net zero.""")
+    
+    st.write("""We would be grateful for your feedback - Fill in our [Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link)""")
+
+    if st.button("Get Started"):
+        st.rerun()
+
+def change_to_afolu_only():
+    st.session_state.show_afolu_only = st.session_state.show_afolu_only_checkbox
+
+def update_SSR_metric():
+    st.session_state.ssr_metric = st.session_state.update_ssr_metric
+
+def update_plot_key():
+    st.session_state.plot_key = st.session_state.update_plot_key
