@@ -52,7 +52,7 @@ def plots(datablock):
                     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
                     emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
                     total_emissions = emissions.sum(dim="Item").values/1e6
-                    total_seq = seq_da.sel(Item=["Broadleaved woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
+                    total_seq = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland", "Peatland"]).sum(dim="Item").values/1e6
                     total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
 
                     emissions_balance = xr.DataArray(data = list(sector_emissions_dict.values()),
@@ -404,12 +404,24 @@ def plots(datablock):
         the "Submit pathway" button. You can change your responses as many
         times as you want before the expert submission deadline on 26th
         March 2025.</div>""", unsafe_allow_html=True)
-        user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+
+        col1_submit, col2_submit, col3_submit = st.columns(3)
+
+
+            
+        with col1_submit:
+            submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
+        with col2_submit:
+            user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+        with col3_submit:
+            st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
+
+        allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
         submit_state = st.button("Submit pathway")
 
         # submit scenario
         if submit_state:
-            submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID)
+            submit_scenario(user_id, SSR_metric_yr, emissions_balance.sum(), ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name)
 
     if plot_key != "Summary":
         with bottom():

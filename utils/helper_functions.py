@@ -24,14 +24,14 @@ default_widget_values = {
     "pig_poultry_eggs": 0,
     "fruit_veg": 0,
     "cereals": 0,
-    "labmeat": 0,
-    "dairy_alt":0,
+    "meat_alternatives": 0,
+    "dairy_alternatives":0,
     "waste": 0,
 
     # Land use sliders and widgets
     "land_bar": 0,
     "foresting_pasture": 0,
-    "land_beccs": 0,
+    "land_BECCS": 0,
     "peatland": 0,
     "soil_carbon": 0,
     "mixed_farming": 0,
@@ -54,6 +54,7 @@ default_widget_values = {
     "arable_bar": 0,
     "agroforestry": 0,
     "fossil_arable": 0,
+    "vertical_farming": 0,
 
     # Advanced settings sliders and widgets
     "labmeat_slider": 25,
@@ -128,18 +129,24 @@ def first_run_dialog():
             to be, and the calculator shows how your choices affect UK emissions,
             land use and UK self-sufficiency.""")
     
+    st.write("""Once you have used the sliders to select your preferred levels
+             of intervention, enter your email address in the field below and
+             click the "Submit pathway" button. You can change your responses as
+             many times as you want before the expert submission deadline on
+             26th March 2025.
+             """)
+    
     _, col2, _ = st.columns([0.5, 1, 0.5])
     with col2:
         st.image("images/slider_gif_intro.gif")
-    
-    st.write("""Its purpose is to help everyone engage in the debate and explore how
-            different plans support the path to net zero.""")
-             
+                 
     st.write("""The Agrifood Calculator was developed with funding from [FixOurFood](https://fixourfood.org/).
             It was conceived as a tool to support evidence based policy making
             and to engage food system stakeholders in a conversation about
             pathways to net zero.""")
     
+    st.video("https://youtu.be/kx8j151hfLE")
+
     st.write("""We would be grateful for your feedback - Fill in our [Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link)""")
 
     if st.button("Get Started"):
