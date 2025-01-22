@@ -89,33 +89,33 @@ with st.sidebar:
         
         dairy = st.slider('Reduce dairy consumption',
                         min_value=-100, max_value=100, step=1, value=0,
-                        key="dairy", help=help["sidebar_consumer"][2])
+                        key="dairy", help=help_str(help, "sidebar_consumer", 2, "z0gjphyzstcl"))
         
         pig_poultry_eggs = st.slider('Reduce pig, poultry and eggs consumption',
                         min_value=-100, max_value=100, step=1, value=0,
-                        key="pig_poultry_eggs", help=help["sidebar_consumer"][3])
+                        key="pig_poultry_eggs", help=help_str(help, "sidebar_consumer", 3, "6u16n1fg1w03"))
         
         fruit_veg = st.slider('Increase fruit and vegetable consumption',
                         min_value=-100, max_value=100, step=1, value=0,
-                        key="fruit_veg", help=help["sidebar_consumer"][4])
+                        key="fruit_veg", help=help_str(help, "sidebar_consumer", 4, "okbabgaqb068"))
         
         if not st.session_state["cereal_scaling"]:
             cereals = st.slider('Increase cereal consumption',
                             min_value=-100, max_value=100, step=1, value=0,
-                            key="cereals", help=help["sidebar_consumer"][5],
+                            key="cereals", help=help_str(help, "sidebar_consumer", 5, "p0a3p6fkxlzn"),
                             disabled=st.session_state["cereal_scaling"])
 
         meat_alternatives = st.slider('Increase meat alternatives uptake',
                         min_value=-100, max_value=100, step=1, value=0,
-                        key="meat_alternatives", help=help["sidebar_consumer"][7])     
+                        key="meat_alternatives", help=help_str(help, "sidebar_consumer", 7, "ty2fxim28j6p"))     
         
         dairy_alternatives = st.slider('Increase dairy alternatives uptake',
                         min_value=-100, max_value=100, step=1, value=0,
-                        key="dairy_alternatives", help=help["sidebar_consumer"][7])
+                        key="dairy_alternatives", help=help_str(help, "sidebar_consumer", 8, "ty2fxim28j6p"))
         
         waste = st.slider('Food waste and over-eating reduction',
                         min_value=-100, max_value=100, step=1, value=0,
-                        key="waste", help=help["sidebar_consumer"][6])  
+                        key="waste", help=help_str(help, "sidebar_consumer", 6, "jjk6fgg4t69m"))  
 
         st.button("Reset", on_click=reset_sliders, key='reset_consumer',
                   kwargs={"keys": [consumer_slider_keys, "consumer_bar"]})
@@ -124,27 +124,31 @@ with st.sidebar:
 
     with st.expander("**:earth_africa: Land use change**"):
 
-        land_slider_keys = ["foresting_pasture", "land_BECCS", "peatland", "soil_carbon", "mixed_farming"]
+        land_slider_keys = ["foresting_pasture", "land_BECCS", "lowland_peatland", "upland_peatland", "soil_carbon", "mixed_farming"]
 
-        foresting_pasture = st.slider('Forested pasture land fraction',
-                        min_value=0, max_value=100, step=1,
-                        key="foresting_pasture", help=help["sidebar_land"][0])        
+        foresting_pasture = st.slider('Additional forested UK land area percentage',
+                        min_value=-25, max_value=25, step=1, value=0,
+                        key="foresting_pasture", help=help_str(help, "sidebar_land", 0, "oqoktlcczgw8"))        
 
         land_BECCS = st.slider('Percentage of farmland used for BECCS crops',
                         min_value=0, max_value=20, step=1,
-                        key="land_BECCS", help=help["sidebar_innovation"][1])
+                        key="land_BECCS", help=help_str(help, "sidebar_land", 1, "hjx1wpsuoy8u"))
 
-        peatland = st.slider('Percentage of peatland restored',
+        lowland_peatland = st.slider('Percentage of lowland peatland restored',
                              min_value=0, max_value=100, step=1,
-                             key="peatland", help=help["sidebar_land"][2])
-
-        soil_carbon = st.slider('Percentage of managed land for soil carbon management',
-                                 min_value=0, max_value=100, step=1,
-                                 key="soil_carbon", help=help["sidebar_land"][3])
+                             key="lowland_peatland", help=help_str(help, "sidebar_land", 2, "eln33eildo1k"))
         
-        mixed_farming = st.slider('Percentage of agricultural land converted to mixed farming',
+        upland_peatland = st.slider('Percentage of upland peatland restored',
+                             min_value=0, max_value=100, step=1,
+                             key="upland_peatland", help=help_str(help, "sidebar_land", 2, "rgtch9lm7i39"))
+
+        soil_carbon = st.slider('Percentage of land managed for soil carbon management',
+                                 min_value=0, max_value=100, step=1,
+                                 key="soil_carbon", help=help_str(help, "sidebar_land", 3, "3a92auci0xj5"))
+        
+        mixed_farming = st.slider('Percentage of arable land converted to mixed farming',
                                   min_value=0, max_value=100, step=1,
-                                  key="mixed_farming", help=help["sidebar_land"][4])
+                                  key="mixed_farming", help=help_str(help, "sidebar_land", 4, "7su0nj7wz5ct"))
 
         st.button("Reset", on_click=reset_sliders, key='reset_land',
                   kwargs={"keys":[land_slider_keys, "land_bar"]})
@@ -161,23 +165,23 @@ with st.sidebar:
         
         silvopasture = st.slider('Pasture land % converted to silvopasture',
                         min_value=0, max_value=100, step=1,
-                        key='silvopasture', help=help["sidebar_land"][3])        
+                        key='silvopasture', help=help_str(help, "sidebar_livestock", 0, "8r8po4kj9qqw"))        
         
         methane_inhibitor = st.slider('Methane inhibitor use in livestock feed',
                         min_value=0, max_value=100, step=1,
-                        key='methane_inhibitor', help=help["sidebar_livestock"][0])
+                        key='methane_inhibitor', help=help_str(help, "sidebar_livestock", 1, "tbok5jqrlrxb"))
         
         manure_management = st.slider('Manure management in livestock farming',
                         min_value=0, max_value=100, step=1,
-                        key='manure_management', help=help["sidebar_livestock"][1])
+                        key='manure_management', help=help_str(help, "sidebar_livestock", 2, "aqz9utt7u1x"))
         
         animal_breeding = st.slider('Livestock breeding',
                         min_value=0, max_value=100, step=1,
-                        key='animal_breeding', help=help["sidebar_livestock"][2])
+                        key='animal_breeding', help=help_str(help, "sidebar_livestock", 3, "u9p65u7y1vdc"))
         
         fossil_livestock = st.slider('Fossil fuel use for heating, machinery',
                         min_value=0, max_value=100, step=1,
-                        key='fossil_livestock', help=help["sidebar_livestock"][4])
+                        key='fossil_livestock', help=help_str(help, "sidebar_livestock", 4, "qtazr4y5dfwi"))
         
 
         st.button("Reset", on_click=reset_sliders, key='reset_livestock',
@@ -191,15 +195,15 @@ with st.sidebar:
         
         agroforestry = st.slider('Arable land % converted to agroforestry',
                         min_value=0, max_value=100, step=1,
-                        key='agroforestry', help=help["sidebar_land"][4])
+                        key='agroforestry', help=help_str(help,"sidebar_land",4, "90swrlvdy6f8"))
 
         fossil_arable = st.slider('Fossil fuel use for machinery',
                         min_value=0, max_value=100, step=1,
-                        key='fossil_arable', help=help["sidebar_arable"][1])
+                        key='fossil_arable', help=help_str(help,"sidebar_arable",1,"6j2golzh19zq"))
         
         vertical_farming = st.slider('Vertical and urban farming',
                         min_value=0, max_value=100, step=1,
-                        key='vertical_farming', help=help["sidebar_arable"][2])
+                        key='vertical_farming', help=help_str(help,"sidebar_arable",2,"2w3tq0fbry5i"))
                         
         st.button("Reset", on_click=reset_sliders, key='reset_arable',
             kwargs={"keys": [arable_slider_keys, "arable_bar"]})        
@@ -238,7 +242,7 @@ with st.sidebar:
 
             cc_production_decline = st.checkbox('Production decline caused by climate change', value=False, key='cc_production_decline')
 
-            labmeat_co2e = st.slider('Cultured meat GHG emissions [g CO2e / g]', min_value=1., max_value=120., value=6.5, key='labmeat_slider')
+            labmeat_co2e = st.slider('Cultured meat GHG emissions [g CO2e / g]', min_value=1., max_value=10., value=2., key='labmeat_slider')
             dairy_alternatives_co2e = st.slider('Dairy alternatives GHG emissions [g CO2e / g]', min_value=0.10, max_value=0.27, value=0.14, key='dairy_alternatives_slider')
             
             rda_kcal = st.slider('Recommended daily energy intake [kCal]', min_value=2000, max_value=2500, value=2250, key='rda_slider')
@@ -247,8 +251,14 @@ with st.sidebar:
             max_ghge_plant = st.slider('Maximum plant production GHGE reduction due to innovation [%]', min_value=0, max_value=100, value=30, step=10, key = "max_ghg_plant", help = help["advanced_options"][4])
             bdleaf_conif_ratio = st.slider('Ratio of coniferous to broadleaved reforestation', min_value=0, max_value=100, value=75, step=10, key = "bdleaf_conif_ratio", help = help["advanced_options"][5])
             bdleaf_seq_ha_yr = st.slider('Broadleaved forest CO2 sequestration [t CO2 / ha / year]', min_value=1., max_value=15., value=3.5, step=0.5, key = "bdleaf_seq_ha_yr", help = help["advanced_options"][6])
-            peatland_seq_ha_yr = st.slider('Peatland CO2 sequestration [t CO2 / ha / year]', min_value=1., max_value=15., value=5., step=0.5, key = "peatland_seq_ha_yr", help = help["advanced_options"][6])
-            
+            peatland_seq_ha_yr = st.slider('Peatland CO2 sequestration [t CO2 / ha / year]', min_value=1., max_value=15., value=5., step=0.5, key = "peatland_seq_ha_yr", help = help["advanced_options"][7])
+            managed_arable_seq_ha_yr = st.slider('Managed arable land CO2 sequestration [t CO2 / ha / year]', min_value=0., max_value=5., value=1., step=0.1, key = "managed_arable_seq_ha_yr", help = help["advanced_options"][8])
+            managed_pasture_seq_ha_yr = st.slider('Managed pasture land CO2 sequestration [t CO2 / ha / year]', min_value=0., max_value=5., value=1., step=0.1, key = "managed_pasture_seq_ha_yr", help = help["advanced_options"][8])
+            mixed_farming_seq_ha_yr = st.slider('Mixed farming CO2 sequestration [t CO2 / ha / year]', min_value=0., max_value=5., value=1., step=0.1, key = "mixed_farming_seq_ha_yr", help = help["advanced_options"][8])
+
+            mixed_farming_production_scale = st.slider('Relative production of primary products in mixed farming', min_value=0., max_value=1., value=0.9, step=0.1, key = "mixed_farming_production_scale", help = help["advanced_options"][8])
+            mixed_farming_secondary_production_scale = st.slider('Relative production of secondary products in mixed farming', min_value=0., max_value=1., value=0.9, step=0.1, key = "mixed_farming_secondary_production_scale", help = help["advanced_options"][8])
+
             conif_seq_ha_yr = st.slider('Coniferous forest CO2 sequestration [t CO2 / ha / year]', min_value=1., max_value=30., value=6.5, step=0.5, key = "conif_seq_ha_yr", help = help["advanced_options"][7])
             elasticity = st.slider("Production / Imports elasticity ratio", min_value=0., max_value=1., value=0.5, step=0.1, key="elasticity", help = help["advanced_options"][9])
             agroecology_tree_coverage = st.slider("Tree coverage in agroecology", min_value=0., max_value=1., value=0.1, step=0.1, key="tree_coverage")
@@ -256,22 +266,22 @@ with st.sidebar:
             # tillage_prod_factor = st.slider("Soil tillage production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="tillage_prod")
             # tillage_ghg_factor = st.slider("Soil tillage GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="tillage_ghg")
 
-            manure_prod_factor = st.slider("Manure production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="manure_prod")
-            manure_ghg_factor = st.slider("Manure GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="manure_ghg")
+            manure_prod_factor = st.slider("Manure production reduction", min_value=0., max_value=1., value=0.0, step=0.1, key="manure_prod_factor")
+            manure_ghg_factor = st.slider("Manure GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="manure_ghg_factor")
 
-            breeding_prod_factor = st.slider("Breeding production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="breeding_prod")
-            breeding_ghg_factor = st.slider("Breeding GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="breeding_ghg")
+            breeding_prod_factor = st.slider("Breeding production reduction", min_value=0., max_value=1., value=0.0, step=0.1, key="breeding_prod_factor")
+            breeding_ghg_factor = st.slider("Breeding GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="breeding_ghg_factor")
 
-            methane_prod_factor = st.slider("Methane inhibitors production reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="methane_prod")
-            methane_ghg_factor = st.slider("Methane inhibitors GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="methane_ghg")
+            methane_prod_factor = st.slider("Methane inhibitors production reduction", min_value=0., max_value=1., value=0.0, step=0.1, key="methane_prod_factor")
+            methane_ghg_factor = st.slider("Methane inhibitors GHG reduction", min_value=0., max_value=1., value=0.3, step=0.1, key="methane_ghg_factor")
 
             # soil_management_ghg_factor = st.slider("Soil and carbon management GHG reduction", min_value=0., max_value=.2, value=0.05, step=0.01, key="soil_management_ghg")
 
             fossil_livestock_ghg_factor = st.slider("Livestock fossil fuel GHG reduction", min_value=0., max_value=.2, value=0.05, step=0.01, key="fossil_livestock_ghg_factor")
             fossil_arable_ghg_factor = st.slider("Arable fossil fuel GHG reduction", min_value=0., max_value=.2, value=0.05, step=0.01, key="fossil_arable_ghg_factor")
 
-            fossil_livestock_prod_factor = st.slider("Livestock fossil fuel production reduction", min_value=0., max_value=1., value=0.05, step=0.01, key="fossil_livestock_prod_factor")
-            fossil_arable_prod_factor = st.slider("Arable fossil fuel production reduction", min_value=0., max_value=1., value=0.05, step=0.01, key="fossil_arable_prod_factor")
+            fossil_livestock_prod_factor = st.slider("Livestock fossil fuel production reduction", min_value=0., max_value=1., value=0.0, step=0.01, key="fossil_livestock_prod_factor")
+            fossil_arable_prod_factor = st.slider("Arable fossil fuel production reduction", min_value=0., max_value=1., value=0.0, step=0.01, key="fossil_arable_prod_factor")
             
             scaling_nutrient = st.radio("Which nutrient to keep constant when scaling food consumption",
                                         ('g/cap/day', 'g_prot/cap/day', 'g_fat/cap/day', 'kCal/cap/day'),
@@ -305,7 +315,7 @@ with st.sidebar:
 
             st.session_state.cc_production_decline = False
 
-            st.session_state.labmeat_co2e = 6.5
+            st.session_state.labmeat_co2e = 2.0
             st.session_state.dairy_alternatives_co2e = 0.14
             st.session_state.rda_kcal = 2250
 
@@ -318,28 +328,35 @@ with st.sidebar:
             st.session_state.conif_seq_ha_yr = 6.5
             st.session_state.peatland_seq_ha_yr = 5.0
 
+            st.session_state.managed_arable_seq_ha_yr = 1.0
+            st.session_state.managed_pasture_seq_ha_yr = 1.0
+            st.session_state.mixed_farming_seq_ha_yr = 1.0
+
+            st.session_state.mixed_farming_production_scale = 0.9
+            st.session_state.mixed_farming_secondary_production_scale = 0.9
+
             st.session_state.elasticity = 0.5
             st.session_state.agroecology_tree_coverage = 0.1
 
             # tillage_prod_factor = 0.3
             # tillage_ghg_factor = 0.3
 
-            st.session_state.manure_prod_factor = 0.3
+            st.session_state.manure_prod_factor = 0.0
             st.session_state.manure_ghg_factor = 0.3
 
-            st.session_state.breeding_prod_factor = 0.3
+            st.session_state.breeding_prod_factor = 0.0
             st.session_state.breeding_ghg_factor = 0.3
 
-            st.session_state.methane_prod_factor = 0.3
+            st.session_state.methane_prod_factor = 0.0
             st.session_state.methane_ghg_factor = 0.3
 
             # soil_management_ghg_factor = 0.05
 
             st.session_state.fossil_livestock_ghg_factor = 0.05
-            st.session_state.fossil_livestock_prod_factor = 0.05
+            st.session_state.fossil_livestock_prod_factor = 0.0
 
             st.session_state.fossil_arable_ghg_factor = 0.05
-            st.session_state.fossil_arable_prod_factor = 0.05
+            st.session_state.fossil_arable_prod_factor = 0.0
             
             st.session_state.scaling_nutrient = 'kCal/cap/day'              
 
@@ -351,7 +368,7 @@ with st.sidebar:
                [Fill in our Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link).''')
     
     st.caption('''--- For a list of references to the datasets used, please
-                visit our [reference document](https://docs.google.com/spreadsheets/d/1XkOELCFKHTAywUGoJU6Mb0TjXESOv5BbR67j9UCMEgw/edit?usp=sharing).''')
+                visit our [reference document](https://docs.google.com/document/d/1A2J4BYIuXMgrj9tuLtIon8oJTuR1puK91bbUYCI8kHY/).''')
     
     if st.button("Help"):
         first_run_dialog()

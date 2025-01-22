@@ -3,6 +3,7 @@ import gspread
 from google.oauth2 import service_account
 from utils.helper_functions import update_slider, reset_sliders
 import subprocess
+import numpy as np
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 SERVICE_ACCOUNT_FILE = dict(st.secrets["gspread"]["gs_api_key"])
@@ -34,8 +35,10 @@ keys=[
 
     "foresting_pasture",
     "land_BECCS",
-    "peatland",
+    "upland_peatland",
+    "lowland_peatland",
     "soil_carbon",
+    "mixed_farming",
     
     "silvopasture",
     "methane_inhibitor",
@@ -60,7 +63,7 @@ def get_user_list():
     return user_list
 
 @st.dialog("Submit scenario")
-def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_users=True, name=None):
+def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None, extra_values=None):
     """Submit the pathway to the Google Sheet.
 
     Parameters:
@@ -106,8 +109,10 @@ def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_
             
             st.session_state["foresting_pasture"],
             st.session_state["land_BECCS"],
-            st.session_state["peatland"],
+            st.session_state["upland_peatland"],
+            st.session_state["lowland_peatland"],
             st.session_state["soil_carbon"],
+            st.session_state["mixed_farming"],
 
             st.session_state["silvopasture"],
             st.session_state["methane_inhibitor"],
@@ -123,8 +128,8 @@ def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_
             st.session_state["overseas_BECCS"],
             st.session_state["DACCS"],
             
-            '{0:.2f}'.format(SSR),
-            '{0:.2f}'.format(total_emissions),
+            # '{0:.2f}'.format(SSR),
+            # '{0:.2f}'.format(total_emissions),
 
             st.session_state.elasticity,
             st.session_state.bdleaf_seq_ha_yr,
@@ -132,6 +137,12 @@ def submit_scenario(user_id, SSR, total_emissions, ambition_levels=False, check_
             st.session_state.emission_factors,
             hash
         ]
+
+        if extra_values is not None:
+            if np.isscalar(extra_values):
+                extra_values = [extra_values]
+            values_formatted = ['{0:.2f}'.format(val) for val in extra_values]
+            row.extend(values_formatted)
 
         stage_I_worksheet.append_row(row)
         st.success(f'Scenario submitted for user {user_id}', icon="✅")

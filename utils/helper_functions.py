@@ -32,7 +32,8 @@ default_widget_values = {
     "land_bar": 0,
     "foresting_pasture": 0,
     "land_BECCS": 0,
-    "peatland": 0,
+    "lowland_peatland": 0,
+    "upland_peatland": 0,
     "soil_carbon": 0,
     "mixed_farming": 0,
 
@@ -145,7 +146,7 @@ def first_run_dialog():
             and to engage food system stakeholders in a conversation about
             pathways to net zero.""")
     
-    st.video("https://youtu.be/kx8j151hfLE")
+    st.video("https://youtu.be/xHbKmMsDegc")
 
     st.write("""We would be grateful for your feedback - Fill in our [Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link)""")
 
