@@ -147,12 +147,14 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
         stage_I_worksheet.append_row(row)
         st.success(f'Scenario submitted for user {user_id}', icon="✅")
 
+@st.cache_data(ttl=3600)
 def get_pathways():
     """Get the pathways names from the Google Sheet"""
 
     values = pathways_worksheet.col_values(1)
     return values[2:]
 
+@st.cache_data(ttl=3600)
 def get_pathway_data(pathway_name):
     """Get the scenario data from the Google Sheet"""
 

@@ -1,6 +1,7 @@
 # FAIR wrapper, needed for caching
 import streamlit as st
 import numpy as np
+import pandas as pd
 
 # Helper Functions
 
@@ -15,7 +16,7 @@ def update_slider(keys, values):
 
 default_widget_values = {
     # Scenario
-    "scenario": "Business as Usual",
+    "scenario": "Baseline",
 
     # Consumer demand sliders and widgets
     "consumer_bar": 0,
@@ -161,3 +162,7 @@ def update_SSR_metric():
 
 def update_plot_key():
     st.session_state.plot_key = st.session_state.update_plot_key
+
+@st.cache_data(ttl=60*60*24)
+def read_help():
+    return pd.read_csv(st.secrets["tooltips_url"], dtype='string')

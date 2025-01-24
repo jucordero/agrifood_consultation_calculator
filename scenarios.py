@@ -2,7 +2,7 @@ import streamlit as st
 from utils.helper_functions import update_slider, reset_sliders
 
 scenarios_dict={
-    "Business as Usual":{        
+    "Baseline":{        
     },
     "Green Alliance - Balance Food, Nature and Climate priorities":{
         "dairy":            45,

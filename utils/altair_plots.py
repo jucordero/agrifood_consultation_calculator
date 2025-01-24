@@ -38,7 +38,7 @@ def plot_years_altair(food, show="Item", ylabel=None, colors=None, ymin=None, ym
 
     # Create altair chart
     c = alt.Chart(df).mark_area().encode(
-            x=alt.X('Year:O', axis=alt.Axis(values = np.linspace(1960, 2100, 8))),
+            x=alt.X('Year:O', axis=alt.Axis(values = np.linspace(2020, 2050, 5))),
             y=alt.Y('sum(value):Q', axis=alt.Axis(format="~s", title=ylabel, ), scale=alt.Scale(domain=[ymin, ymax])),
             # color=alt.Color(f'{show}:N', scale=alt.Scale(scheme='category20b')),
             color=alt.Color(f'{show}:N', scale=color_scale),
@@ -65,7 +65,7 @@ def plot_years_total(food, ylabel=None, sumdim=None, color="red", yrange=None):
 
     df = pd.DataFrame(data={"Year":years, "value":total})
     c = alt.Chart(df).encode(
-        alt.X('Year:O', axis=alt.Axis(values = np.linspace(1960, 2100, 8))),
+        alt.X('Year:O', axis=alt.Axis(values = np.linspace(2020, 2050, 5))),
         y_ax
     ).mark_line(color=color).properties(height=550)
 

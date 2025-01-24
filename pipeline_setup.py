@@ -10,8 +10,7 @@ def pipeline_setup(food_system):
 
     # Consumer demand
     food_system.add_step(project_future,
-                            {"scale":proj_pop,
-                            "cc_decline":st.session_state.cc_production_decline})
+                            {"cc_decline":st.session_state.cc_production_decline})
     
     food_system.add_step(item_scaling,
                             {"scale":1-st.session_state.ruminant/100,
@@ -20,7 +19,7 @@ def pipeline_setup(food_system):
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
                             "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":cereal_items})
+                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
     food_system.add_step(item_scaling,
                             {"scale":1-st.session_state.pig_poultry_eggs/100,
@@ -29,7 +28,7 @@ def pipeline_setup(food_system):
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
                             "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":cereal_items})
+                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
     food_system.add_step(item_scaling,
                             {"scale":1-st.session_state.dairy/100,
@@ -38,16 +37,16 @@ def pipeline_setup(food_system):
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
                             "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":cereal_items})
+                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
     food_system.add_step(item_scaling,
                             {"scale":1+st.session_state.fruit_veg/100,
-                            "item_group":["Vegetables", "Fruits - Excluding Wine", "Vegetables, other"],
+                            "items":("Item_group", ["Vegetables", "Fruits - Excluding Wine", "Vegetables, other"]),
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient,
                             "constant":st.session_state.cereal_scaling,
-                            "non_sel_items":cereal_items})
+                            "non_sel_items":("Item_group", "Cereals - Excluding Beer")})
 
     food_system.add_step(cultured_meat_model,
                             {"cultured_scale":st.session_state.meat_alternatives/100,
@@ -72,7 +71,7 @@ def pipeline_setup(food_system):
     if not st.session_state.cereal_scaling:
         food_system.add_step(item_scaling,
                             {"scale":1+st.session_state.cereals/100,
-                            "item_group":["Cereals - Excluding Beer"],
+                            "items":("Item_group", "Cereals - Excluding Beer"),
                             "source":["production", "imports"],
                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity],
                             "scaling_nutrient":st.session_state.scaling_nutrient})
