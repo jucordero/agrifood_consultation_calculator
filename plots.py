@@ -11,7 +11,7 @@ from glossary import *
 from utils.helper_functions import *
 from consultation_utils import submit_scenario, get_user_list, stage_I_deadline
 
-
+@st.fragment()
 def plots(datablock):
     reference_emissions_baseline = 97.09
     reference_emissions_baseline_agriculture = 52.08
