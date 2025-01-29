@@ -173,5 +173,7 @@ def read_advanced_settings():
     for index, row in advanced_settings.iterrows():
         if row["type"] == "float": 
             st.session_state[row["key"]] = float(row["value"])
-        elif row["type"] == "str":
+        elif row["type"] == "string":
             st.session_state[row["key"]] = str(row["value"])
+        elif row["type"] == "bool":
+            st.session_state[row["key"]] = row["value"] == "TRUE"
