@@ -166,3 +166,12 @@ def update_plot_key():
 @st.cache_data(ttl=60*60*24)
 def read_help():
     return pd.read_csv(st.secrets["tooltips_url"], dtype='string')
+
+# @st.cache_data(ttl=60*60*24)
+def read_advanced_settings():
+    advanced_settings  = pd.read_csv(st.secrets["advanced_settings_url"], dtype='string')
+    for index, row in advanced_settings.iterrows():
+        if row["type"] == "float": 
+            st.session_state[row["key"]] = float(row["value"])
+        elif row["type"] == "str":
+            st.session_state[row["key"]] = str(row["value"])
