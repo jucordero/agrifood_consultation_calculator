@@ -4,16 +4,12 @@ import pandas as pd
 from utils.altair_plots import *
 from utils.helper_functions import *
 
-from utils.pipeline import Pipeline
+from agrifoodpy.pipeline import Pipeline
 from datablock_setup import datablock_setup
 from pipeline_setup import pipeline_setup
 
 from glossary import *
 from consultation_utils import get_pathways, call_scenarios
-
-import time
-start_time = time.time()
-step_time = time.time()
 
 if "cereal_scaling" not in st.session_state:
     st.session_state["cereal_scaling"] = True
@@ -44,9 +40,6 @@ st.set_page_config(layout='wide',
 
 help = read_help()
 read_advanced_settings()
-help_time = time.time() - step_time
-step_time = time.time()
-print(f"Reading help file and advanced settings: {help_time:.2f} seconds")
 
 with open('utils/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
@@ -54,10 +47,6 @@ with open('utils/style.css') as f:
 if st.session_state.first_run:
     st.session_state.first_run = False
     first_run_dialog()
-
-    first_dialog_time = time.time() - step_time
-    step_time = time.time()
-    print(f"Generating first run dialog: {first_dialog_time:.2f} seconds")
 
 with st.sidebar:
 
@@ -258,37 +247,17 @@ with st.sidebar:
     if st.button("Help"):
         first_run_dialog()
 
-    app_time = time.time() - step_time
-    step_time = time.time()
-    print(f"Building Sidebar: {app_time:.2f} seconds")
-
 # ----------------------------------------
 #                  Main
 # ----------------------------------------
 
 food_system = Pipeline(datablock_setup())
-setup_time = time.time() - step_time
-step_time = time.time()
-print(f"Seting up datablock: {setup_time:.2f} seconds")
-
 food_system = pipeline_setup(food_system)
-pipeline_time = time.time() - step_time
-step_time = time.time()
-print(f"Setting up pipeline: {pipeline_time:.2f} seconds")
-
 food_system.run()
-run_time = time.time() - step_time
-step_time = time.time()
 datablock_result = food_system.datablock
-print(f"Running pipeline: {run_time:.2f} seconds")
 
 # -------------------
 # Execute plots block
 # -------------------
 from plots import plots
 metric_yr = plots(datablock_result)
-plot_time = time.time() - step_time
-print(f"Plotting: {plot_time:.2f} seconds")
-
-total_time = time.time() - start_time
-print(f"Total time: {total_time:.2f} seconds")
