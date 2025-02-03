@@ -4,7 +4,7 @@ import streamlit as st
 import copy
 
 from agrifoodpy.impact.model import fbs_impacts, fair_co2_only
-from utils.pipeline import Pipeline
+from agrifoodpy.pipeline import Pipeline
 
 @st.cache_data(ttl=60*60*24)
 def datablock_setup():
