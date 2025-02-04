@@ -6,7 +6,7 @@ import warnings
 import copy
 import streamlit as st
 
-def project_future(datablock, scale, cc_decline=False):
+def project_future(datablock, cc_decline=False):
     """Project future food consumption based on scale
     
     Parameters
@@ -22,7 +22,12 @@ def project_future(datablock, scale, cc_decline=False):
     datablock : Dict
         New dictionary containinng projected food consumption data
     """
-    years = np.arange(2021,2101)
+    years = np.arange(2021,2051)
+
+    pop = datablock["population"]["population"]
+
+    scale = pop.sel(Region=826, Year=np.arange(2021, 2051)) / \
+               pop.sel(Region=826, Year=2020)
 
     # Per capita per day values remain constant
     g_cap_day = datablock["food"]["g/cap/day"]
@@ -70,8 +75,8 @@ def project_future(datablock, scale, cc_decline=False):
     return datablock
 
 def item_scaling(datablock, scale, source, scaling_nutrient,
-                 elasticity=None, items=None, item_group=None,
-                 constant=True, non_sel_items=None):
+                 elasticity=None, items=None, constant=True,
+                 non_sel_items=None):
     """Reduces per capita intake quantities and replaces them by other items
     keeping the overall consumption constant. Scales land use if production
     changes
@@ -85,21 +90,12 @@ def item_scaling(datablock, scale, source, scaling_nutrient,
     if np.isscalar(source):
         source = [source]
     
+    items = get_items(food_orig, items)
+    non_sel_items = get_items(food_orig, non_sel_items)
     # if no items are specified, do nothing
-    if items is None and item_group is None:
+    if items is None:
         return datablock
-    else:
-        # if items are specified, select the items to scale
-        # we prioritise items over item_origin
-        if items is not None:
-            pass
-        # if item_origin is specified, select the items to scale
-        elif item_group is not None:
-            if np.isscalar(item_group):
-                item_group = [item_group]
-            items = food_orig.sel(Item = food_orig.Item_group.isin(item_group)).Item.values
-            # items = food_orig.sel(Item = food_orig.Item_group==item_group).Item.values
-
+    
     # Balanced scaling. Reduce food, reduce imports, keep kCal constant
     out = balanced_scaling(fbs=food_orig,
                            items=items,
@@ -651,7 +647,7 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS):
     # sequestration in Mt CO2e / year
 
     land_BECCS_area = pctg.sel({"aggregate_class":"BECCS"}).sum().to_numpy()
-    land_BECCS = land_BECCS_area * 23.5
+    land_BECCS = land_BECCS_area * st.session_state.beccs_crops_seq_ha_yr
 
     logistic_0_val = logistic_food_supply(food_orig, timescale, 0, 1)
 
@@ -1101,11 +1097,11 @@ def scale_kcal_feed(obs, ref, items):
 def production_land_scale(land, obs, ref, bdleaf_conif_ratio):
 
     # Obtain reference and observed production values
-    ref_livest = ref["production"].sel(Year=2100, Item=ref.Item_origin=="Animal Products").sum(dim="Item")
-    ref_arable = ref["production"].sel(Year=2100, Item=ref.Item_origin=="Vegetal Products").sum(dim="Item")
+    ref_livest = ref["production"].sel(Year=2050, Item=ref.Item_origin=="Animal Products").sum(dim="Item")
+    ref_arable = ref["production"].sel(Year=2050, Item=ref.Item_origin=="Vegetal Products").sum(dim="Item")
 
-    obs_livest = obs["production"].sel(Year=2100, Item=obs.Item_origin=="Animal Products").sum(dim="Item")
-    obs_arable = obs["production"].sel(Year=2100, Item=obs.Item_origin=="Vegetal Products").sum(dim="Item")
+    obs_livest = obs["production"].sel(Year=2050, Item=obs.Item_origin=="Animal Products").sum(dim="Item")
+    obs_arable = obs["production"].sel(Year=2050, Item=obs.Item_origin=="Vegetal Products").sum(dim="Item")
 
     # Compute ratios
     livest_ratio = obs_livest / ref_livest
@@ -1302,3 +1298,11 @@ def mixed_farming_model(datablock, fraction, prod_scale_factor, items,
     # TO-DO: update the rest of the nutrient data
 
     return datablock
+
+def get_items(fbs, items):
+    """Get items from food data."""
+    if isinstance(items, tuple):
+        items = fbs.sel(Item=np.isin(fbs[items[0]], items[1])).Item.values
+    elif np.isscalar(items):
+        items = [items]
+    return items
