@@ -82,7 +82,7 @@ def capitalize_first_character(s):
 
 
 def help_str(help, sidebar_key, row_index, heading_key=None):
-    doc_str = "https://docs.google.com/document/d/1A2J4BYIuXMgrj9tuLtIon8oJTuR1puK91bbUYCI8kHY/edit#heading=h."
+    doc_str = st.secrets["modelling_doc_url"]
     help_string = help[sidebar_key][row_index]
 
     if heading_key is not None:

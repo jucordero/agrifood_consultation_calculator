@@ -10,9 +10,15 @@ from agrifoodpy.food.food import FoodBalanceSheet
 from glossary import *
 from utils.helper_functions import *
 from consultation_utils import submit_scenario, get_user_list, stage_I_deadline
+from streamlit_theme import st_theme
 
 @st.fragment()
 def plots(datablock):
+
+    theme = st_theme()
+    background_color = theme["backgroundColor"]
+    plt.rcParams['axes.facecolor'] = background_color
+
     reference_emissions_baseline = 97.09
     reference_emissions_baseline_agriculture = 52.08
 
@@ -213,8 +219,8 @@ def plots(datablock):
 
                 st.markdown('''**Land use**''')
 
-
                 f, plot1 = plt.subplots(1, figsize=(6, 6))
+                f.patch.set_facecolor(background_color)
                 pctg = datablock["land"]["percentage_land_use"]
                 LC_toplot = map_max(pctg, dim="aggregate_class")
 
@@ -224,6 +230,7 @@ def plots(datablock):
                 unique_index = np.unique(label_list, return_index=True)[1]
 
                 cmap_tar = colors.ListedColormap(color_list)
+                cmap_tar.set_bad(background_color)
                 bounds_tar = np.linspace(-0.5, len(color_list)-0.5, len(color_list)+1)
                 norm_tar = colors.BoundaryNorm(bounds_tar, cmap_tar.N)
 
@@ -454,6 +461,8 @@ def plots(datablock):
     elif plot_key == "Land":
 
         f, plot1 = plt.subplots(1, figsize=(8,8))
+        f.patch.set_facecolor(background_color)
+        plot1.set_facecolor(background_color)
         pctg = datablock["land"]["percentage_land_use"]
         LC_toplot = map_max(pctg, dim="aggregate_class")
 
@@ -463,6 +472,7 @@ def plots(datablock):
         unique_index = np.unique(label_list, return_index=True)[1]
 
         cmap_tar = colors.ListedColormap(color_list)
+        cmap_tar.set_bad(background_color)
         bounds_tar = np.linspace(-0.5, len(color_list)-0.5, len(color_list)+1)
         norm_tar = colors.BoundaryNorm(bounds_tar, cmap_tar.N)
 
