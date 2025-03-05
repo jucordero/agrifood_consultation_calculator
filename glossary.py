@@ -71,8 +71,8 @@ vegetarian_diet_dict = {
 }
 
 option_list = ["Summary",
-               "CO2e emission per food group",
-               "CO2e emission per food item",
+            #    "CO2e emission per food group",
+               "Annual quantities",
             #    "CO2 emissions per sector",
                # "CO2e concentration",
                # "Radiative forcing",
@@ -111,7 +111,8 @@ land_color_dict = {
     'BECCS' : "red",
     'Silvopasture' : "lightgreen",
     'Agroforestry' : "lightblue",
-    'Peatland' : "darkred",
+    'Restored upland peat' : "darkred",
+    'Restored lowland peat' : "darkred",
 }
 
 land_label_dict = {
@@ -132,23 +133,26 @@ land_label_dict = {
     'BECCS' : "BECCS",
     'Silvopasture' : "Silvopasture",
     'Agroforestry' : "Agroforestry",
-    'Peatland' : "Peatland",
+    'Restored lowland peat' : "Restored peatland",
+    'Restored upland peat' : "Restored peatland",
 }
 
+# These are the sectoral emissions predicted by the CCC under its "Balanced
+# Pathway" scenario. From the 6th carbon budget report (2020).
 sector_emissions_dict = {
-    "F-gases":2.48,
-    "Waste":7.83,
-    "Shipping":0.89,
-    "Aviation":23.38,
-    "Land use sources":19.79,
-    "Agriculture":0,
-    "Fuel supply":0.43,
-    "Electricity generation":1.2,
-    "Manufacturing and construction":2.81,
-    "Buildings":1.1,
-    "Surface transport":0.87,
-    "Land use sinks":0,
-    "Removals":0,
+    "F-gases":1.60,
+    "Waste":5.11,
+    "Shipping":0.51,
+    "Aviation":22.67,
+    "LU sources":20.82, # Sum of 2025 land use sources
+    "Agriculture":0, # Set to be calculated by the model
+    "Fuel supply":1.57, 
+    "Electricity":1.00,
+    "Manufacturing":3.57,
+    "Buildings":1.11, # Sum of residential and non-residential
+    "Transport":1.07,
+    "LU sinks":0, # Set to be calculated by the model
+    "Removals":0, # Set to be calculated by the model
 }
 
 sector_emissions_colors = {
@@ -156,13 +160,13 @@ sector_emissions_colors = {
     "Waste":"#96e9ff",
     "Shipping":"#ca7880",
     "Aviation":"#ab6b99",
-    "Land use sources":"#cde7b0",
+    "LU sources":"#cde7b0",
     "Agriculture":"#a1d800",
     "Fuel supply":"#369993",
-    "Electricity generation":"#ffff4b",
-    "Manufacturing and construction":"#aec5eb",
+    "Electricity":"#ffff4b",
+    "Manufacturing":"#aec5eb",
     "Buildings":"#ffac00",
-    "Surface transport":"#7142ff",
-    "Land use sinks":"#1a5f31",
+    "Transport":"#7142ff",
+    "LU sinks":"#1a5f31",
     "Removals":"#000000",
 }

@@ -24,9 +24,15 @@ enrolments_worksheet = sh.worksheet("Form responses 2")
 stage_I_deadline = 'December 31, 2024'
 
 keys=[
+
+    "pop_proj",
+    "yield_proj",
+    "elasticity",
+
     "ruminant",
     "dairy",
     "pig_poultry_eggs",
+    "pulses",
     "fruit_veg",
     "cereals",
     "meat_alternatives",
@@ -34,13 +40,15 @@ keys=[
     "waste",
 
     "foresting_pasture",
+    "bdleaf_conif_ratio", 
     "land_BECCS",
-    "upland_peatland",
     "lowland_peatland",
+    "upland_peatland",
     "soil_carbon",
     "mixed_farming",
     
     "silvopasture",
+    "stock_density",
     "methane_inhibitor",
     "manure_management",
     "animal_breeding",
@@ -48,6 +56,7 @@ keys=[
     
     "agroforestry",
     "fossil_arable",
+    "nitrogen",
     "vertical_farming",
     
     "waste_BECCS",
@@ -98,9 +107,15 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
     else:
         row = [user_id,
                name,
+
+            st.session_state["pop_proj"],
+            st.session_state["yield_proj"],
+            st.session_state["elasticity"],
+
             st.session_state["ruminant"],
             st.session_state["dairy"],
             st.session_state["pig_poultry_eggs"],
+            st.session_state["pulses"],
             st.session_state["fruit_veg"],
             st.session_state["cereals"],
             st.session_state["meat_alternatives"],
@@ -108,13 +123,15 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             st.session_state["waste"],
             
             st.session_state["foresting_pasture"],
+            st.session_state["bdleaf_conif_ratio"],
             st.session_state["land_BECCS"],
-            st.session_state["upland_peatland"],
             st.session_state["lowland_peatland"],
+            st.session_state["upland_peatland"],
             st.session_state["soil_carbon"],
             st.session_state["mixed_farming"],
 
             st.session_state["silvopasture"],
+            st.session_state["stock_density"],
             st.session_state["methane_inhibitor"],
             st.session_state["manure_management"],
             st.session_state["animal_breeding"],
@@ -122,15 +139,13 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
 
             st.session_state["agroforestry"],
             st.session_state["fossil_arable"],
+            st.session_state["nitrogen"],
             st.session_state["vertical_farming"],
 
             st.session_state["waste_BECCS"],
             st.session_state["overseas_BECCS"],
             st.session_state["DACCS"],
             
-            # '{0:.2f}'.format(SSR),
-            # '{0:.2f}'.format(total_emissions),
-
             st.session_state.elasticity,
             st.session_state.bdleaf_seq_ha_yr,
             st.session_state.conif_seq_ha_yr,
@@ -145,7 +160,9 @@ def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None,
             row.extend(values_formatted)
 
         stage_I_worksheet.append_row(row)
-        st.success(f'Scenario submitted for user {user_id}', icon="✅")
+        st.success(f'Succesfully submitted scenario {name}', icon="✅")
+        st.write("""If you want to modify your submission, please use the same
+                 scenario name as before.""")
 
 @st.cache_data(ttl=60*60*24)
 def get_pathways():
@@ -164,8 +181,12 @@ def get_pathway_data(pathway_name):
     pathway_values = pathways_worksheet.row_values(idx + 1)
     pathway_values = pathway_values[1:]
 
+    # Convert string values to numbers, replacing empty strings with 0
+    pathway_values = [str(x) if any(c.isalpha() for c in str(x)) else float(x) if x != "" else 0 for x in pathway_values]
+    
+
     # Convert string values to numbers, replacing "no value" with 0
-    pathway_values = [float(x) if x != "Float" and x != "" else 0 for x in pathway_values]
+    # pathway_values = [float(x) if x != "Float" and x != "" else 0 for x in pathway_values]
     
     return pathway_values
 

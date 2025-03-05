@@ -10,11 +10,21 @@ from agrifoodpy.food.food import FoodBalanceSheet
 from glossary import *
 from utils.helper_functions import *
 from consultation_utils import submit_scenario, get_user_list, stage_I_deadline
+from streamlit_theme import st_theme
 
 @st.fragment()
 def plots(datablock):
-    reference_emissions_baseline = 97.09
-    reference_emissions_baseline_agriculture = 52.08
+
+    theme = st_theme()
+    if theme is not None:
+        background_color = theme["backgroundColor"]
+    else:
+        background_color = 'white'
+
+    plt.rcParams['axes.facecolor'] = background_color
+
+    reference_emissions_baseline = 94.24
+    reference_emissions_baseline_agriculture = 53.69
 
     # ----------------------------------------    
     #                  Plots
@@ -56,7 +66,6 @@ def plots(datablock):
                     total_emissions = emissions.sum(dim="Item").values/1e6
                     total_seq = seq_da.sel(Item=["Broadleaf woodland",
                                                  "Coniferous woodland",
-                                                 "Peatland",
                                                  "Managed pasture",
                                                  "Managed arable",
                                                  "Mixed farming",
@@ -69,12 +78,14 @@ def plots(datablock):
                                           coords={"Sector": list(sector_emissions_dict.keys())})
                     
                     emissions_balance.loc[{"Sector": "Agriculture"}] = total_emissions
-                    emissions_balance.loc[{"Sector": "Land use sinks"}] = -total_seq
+                    emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
                     emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
+
+                    emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
                     
                     if st.session_state["show_afolu_only"]:
                         reference_emissions_baseline = 31.61
-                        emissions_balance = emissions_balance.sel(Sector=["Agriculture", "Land use sinks", "Removals"])
+                        emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
 
                     c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                         axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
@@ -213,8 +224,8 @@ def plots(datablock):
 
                 st.markdown('''**Land use**''')
 
-
                 f, plot1 = plt.subplots(1, figsize=(6, 6))
+                f.patch.set_facecolor(background_color)
                 pctg = datablock["land"]["percentage_land_use"]
                 LC_toplot = map_max(pctg, dim="aggregate_class")
 
@@ -224,6 +235,7 @@ def plots(datablock):
                 unique_index = np.unique(label_list, return_index=True)[1]
 
                 cmap_tar = colors.ListedColormap(color_list)
+                cmap_tar.set_bad(background_color)
                 bounds_tar = np.linspace(-0.5, len(color_list)-0.5, len(color_list)+1)
                 norm_tar = colors.BoundaryNorm(bounds_tar, cmap_tar.N)
 
@@ -236,16 +248,13 @@ def plots(datablock):
                 plot1.set_xlim(left=-100)
                 plot1.set_ylim(top=1000)
 
-                _, col_plot, _ = st.columns((0.1, 0.7, 0.1))
-                with col_plot:
-                    st.pyplot(f)
-
                 pctg = datablock["land"]["percentage_land_use"]
                 totals = pctg.sum(dim=["x", "y"])
                 bar_land_use = plot_single_bar_altair(totals, show="aggregate_class",
                     axis_title="Land use [ha]", unit="Hectares", vertical=False,
                     color=land_color_dict, ax_ticks=True, bar_width=100)
                 
+                st.pyplot(f)
                 st.altair_chart(bar_land_use, use_container_width=True)
 
                 st.caption('''<div style="text-align: justify;">
@@ -258,73 +267,36 @@ def plots(datablock):
 
     # Emissions per food group or origin
     # ----------------------------------
-    if plot_key == "CO2e emission per food group":
-        col_opt, col_element, col_y = st.columns([1,1,1])
+    if plot_key == "Annual quantities":
+        col_element, col_opt, col_y, col_sel = st.columns([1,1,1,1])
         with col_opt:
-            option_key = st.selectbox("Plot options", ["Food group", "Food origin"])
+            dissagregation = st.selectbox("Plot options", ["Item_group", "Item_origin", "Item_name"], format_func=lambda x: x.replace("_"," "))
         with col_element:
             element_key = st.selectbox("Food Supply Element", ["production", "food", "imports", "exports", "feed"])
         with col_y:
-            y_key = st.selectbox("Quantity", ["Emissions", "kCal/cap/day", "g/cap/day"])
+            qty_key = st.selectbox("Quantity", ["g_co2e/year", "kCal/cap/day", "g/cap/day", "g_prot/cap/day", "g_fat/cap/day"])
 
-        if y_key == "Emissions":
-            emissions = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
-            seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=slice(None, metric_yr))
+        with col_sel:
+            item_list = st.multiselect("Item", np.unique(datablock["food"][qty_key][dissagregation].values))
+        item_selection = {}
+        if len(item_list) > 0:
+            item_selection = {"Item":item_list}
 
-            if option_key == "Food origin":
-                f = plot_years_altair(emissions[element_key]/1e6, show="Item_origin", ylabel="t CO2e / Year")
 
-            elif option_key == "Food group":
-                f = plot_years_altair(emissions[element_key]/1e6, show="Item_group", ylabel="t CO2e / Year")
-
-            if element_key == "production":
-                # Plot sequestration
-                f += plot_years_altair(-seq_da, show="Item", ylabel="t CO2e / Year")
-                emissions_sum = emissions[element_key].sum(dim="Item")
-                seqestration_sum = seq_da.sum(dim="Item")
-
-                f += plot_years_total((emissions_sum/1e6 - seqestration_sum),
-                                    ylabel="t CO2e / Year",
-                                    color="black")
+        if qty_key == "g_co2e/year":
+            to_plot = datablock["impact"][qty_key][element_key].fillna(0)/1e6
         else:
-            emissions = datablock["food"][y_key].sel(Year=slice(None, metric_yr))
+            to_plot = datablock["food"][qty_key][element_key].fillna(0)
+        to_plot[dissagregation].values = np.array(to_plot[dissagregation].values, dtype=str)
+        to_plot = to_plot.fbs.group_sum(coordinate=dissagregation, new_name="Item")
+        to_plot = to_plot.sel(item_selection)
 
-            if option_key == "Food origin":
-                f = plot_years_altair(emissions[element_key], show="Item_origin", ylabel=y_key)
-
-            elif option_key == "Food group":
-                f = plot_years_altair(emissions[element_key], show="Item_group", ylabel=y_key)
+        f = plot_years_altair(to_plot, show="Item", ylabel=qty_key)
 
         f=f.configure_axis(
             labelFontSize=15,
             titleFontSize=15)
         
-        st.altair_chart(f, use_container_width=True)
-
-    # Emissions per food item from each group
-    # ---------------------------------------
-    elif plot_key == "CO2e emission per food item":
-        col_opt, col_element, col_y = st.columns(3)
-        with col_opt:
-            option_key = st.selectbox("Plot options", np.unique(datablock["impact"]["g_co2e/year"].Item_group.values))
-        with col_element:
-            element_key = st.selectbox("Food Supply Element", ["production", "food", "imports", "exports", "feed"])
-        with col_y:
-            y_key = st.selectbox("Quantity", ["Emissions", "kCal/cap/day", "g/cap/day"])
-
-        if y_key == "Emissions":
-            to_plot = datablock["impact"]["g_co2e/year"].sel(Year=slice(None, metric_yr))
-            to_plot = to_plot[element_key].sel(Item=to_plot["Item_group"] == option_key)/1e6
-
-        else:
-            to_plot = datablock["food"][y_key].sel(Year=slice(None, metric_yr))
-            to_plot = to_plot[element_key].sel(Item=to_plot["Item_group"] == option_key)
-        
-        f = plot_years_altair(to_plot, show="Item_group", ylabel="t CO2e / Year")
-        f = f.configure_axis(
-                labelFontSize=15,
-                titleFontSize=15)
-            
         st.altair_chart(f, use_container_width=True)
 
     # FAOSTAT bar plot with per-capita daily values
@@ -454,6 +426,8 @@ def plots(datablock):
     elif plot_key == "Land":
 
         f, plot1 = plt.subplots(1, figsize=(8,8))
+        f.patch.set_facecolor(background_color)
+        plot1.set_facecolor(background_color)
         pctg = datablock["land"]["percentage_land_use"]
         LC_toplot = map_max(pctg, dim="aggregate_class")
 
@@ -463,6 +437,7 @@ def plots(datablock):
         unique_index = np.unique(label_list, return_index=True)[1]
 
         cmap_tar = colors.ListedColormap(color_list)
+        cmap_tar.set_bad(background_color)
         bounds_tar = np.linspace(-0.5, len(color_list)-0.5, len(color_list)+1)
         norm_tar = colors.BoundaryNorm(bounds_tar, cmap_tar.N)
 
@@ -505,71 +480,71 @@ def plots(datablock):
     
     st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
 
-    if plot_key == "Summary":
-        with st.container():
-            st.markdown("""<div style="text-align: justify;">
-            Once you have used the sliders to select your preferred levels of
-            intervention, enter your email address in the field below and click
-            the "Submit pathway" button. You can change your responses as many
-            times as you want before the expert submission deadline on 26th
-            March 2025.</div>""", unsafe_allow_html=True)
+    # if plot_key == "Summary":
+    #     with st.container():
+    #         st.markdown("""<div style="text-align: justify;">
+    #         Once you have used the sliders to select your preferred levels of
+    #         intervention, enter your email address in the field below and click
+    #         the "Submit pathway" button. You can change your responses as many
+    #         times as you want before the expert submission deadline on 26th
+    #         March 2025.</div>""", unsafe_allow_html=True)
 
-            col1_submit, col2_submit, col3_submit = st.columns(3)
+    #         col1_submit, col2_submit, col3_submit = st.columns(3)
                 
-            with col1_submit:
-                submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
-            with col2_submit:
-                user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
-            with col3_submit:
-                st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
+    #         with col1_submit:
+    #             submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden")
+    #         with col2_submit:
+    #             user_id = st.text_input("Enter your email", placeholder="Enter your email", label_visibility="hidden")
+    #         with col3_submit:
+    #             st.file_uploader("Optionally, add a narrative (PDF format) to go with your submission", accept_multiple_files=False)
 
             
-            allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
-            st.caption("""By clicking ‘Submit’ you are agreeing to our Data Protection Policy [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
-            submit_state = st.button("Submit")
+    #         allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
+    #         st.caption("""By clicking ‘Submit’ you are agreeing to our Data Protection Policy [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
+    #         submit_state = st.button("Submit")
 
-            # submit scenario
-            if submit_state:
-                total_emissions = emissions_balance.sum()
-                reducion_emissions_pctg = (total_emissions - reference_emissions_baseline) / reference_emissions_baseline * 100
-                forest_land_ha = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
-                total_area = datablock["land"]["percentage_land_use"].sum().values
-                new_forest_land_Mha = (forest_land_ha - datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values)/1e6
-                agricultural_emissions = emissions_balance.sel(Sector="Agriculture").sum().values
-                reduction_emissions_agricultural_pctg = (agricultural_emissions - reference_emissions_baseline_agriculture) / reference_emissions_baseline_agriculture * 100
+    #         # submit scenario
+    #         if submit_state:
+    #             total_emissions = emissions_balance.sum()
+    #             reducion_emissions_pctg = (total_emissions - reference_emissions_baseline) / reference_emissions_baseline * 100
+    #             forest_land_ha = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values
+    #             total_area = datablock["land"]["percentage_land_use"].sum().values
+    #             new_forest_land_Mha = (forest_land_ha - datablock["land"]["baseline"].sel(aggregate_class=["Broadleaf woodland", "Coniferous woodland"]).sum().values)/1e6
+    #             agricultural_emissions = emissions_balance.sel(Sector="Agriculture").sum().values
+    #             reduction_emissions_agricultural_pctg = (agricultural_emissions - reference_emissions_baseline_agriculture) / reference_emissions_baseline_agriculture * 100
 
-                arable_land = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Arable", "Managed arable", "Mixed farming", "Agroforestry"]).sum().values / 1e6
-                baseline_arable = datablock["land"]["baseline"].sel(aggregate_class=["Arable"]).sum().values / 1e6
-                new_arable_land_pctg = (arable_land - baseline_arable) / baseline_arable * 100
+    #             arable_land = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Arable", "Managed arable", "Mixed farming", "Agroforestry"]).sum().values / 1e6
+    #             baseline_arable = datablock["land"]["baseline"].sel(aggregate_class=["Arable"]).sum().values / 1e6
+    #             new_arable_land_pctg = (arable_land - baseline_arable) / baseline_arable * 100
 
-                pasture_land = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Improved grassland",
-                                                                                             "Semi-natural grassland",
-                                                                                             "Managed pasture",
-                                                                                             "Silvopasture"]).sum().values / 1e6
+    #             pasture_land = datablock["land"]["percentage_land_use"].sel(aggregate_class=["Improved grassland",
+    #                                                                                          "Semi-natural grassland",
+    #                                                                                          "Managed pasture",
+    #                                                                                          "Silvopasture"]).sum().values / 1e6
 
-                baseline_pasture = datablock["land"]["baseline"].sel(aggregate_class=["Improved grassland",
-                                                                                      "Semi-natural grassland"]).sum().values / 1e6
+    #             baseline_pasture = datablock["land"]["baseline"].sel(aggregate_class=["Improved grassland",
+    #                                                                                   "Semi-natural grassland"]).sum().values / 1e6
                 
-                new_pasture_land_pctg = (pasture_land - baseline_pasture) / baseline_pasture * 100
+    #             new_pasture_land_pctg = (pasture_land - baseline_pasture) / baseline_pasture * 100
 
-                forest_sequestration_MtCO2 = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
-                total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
+    #             forest_sequestration_MtCO2 = seq_da.sel(Item=["Broadleaf woodland", "Coniferous woodland"]).sum(dim="Item").values/1e6
+    #             total_removals = seq_da.sel(Item=["BECCS from waste", "BECCS from overseas biomass", "BECCS from land", "DACCS"]).sum(dim="Item").values/1e6
 
-                extra_values = [SSR_metric_yr,
-                                total_emissions,
-                                reducion_emissions_pctg,
-                                new_forest_land_Mha,
-                                forest_sequestration_MtCO2,
-                                reduction_emissions_agricultural_pctg,
-                                agricultural_emissions,
-                                total_removals,
-                                arable_land,
-                                new_arable_land_pctg,
-                                pasture_land,
-                                new_pasture_land_pctg,
-                                ]
+    #             extra_values = [SSR_metric_yr,
+    #                             total_emissions,
+    #                             reducion_emissions_pctg,
+    #                             new_forest_land_Mha,
+    #                             forest_sequestration_MtCO2,
+    #                             reduction_emissions_agricultural_pctg,
+    #                             agricultural_emissions,
+    #                             total_removals,
+    #                             arable_land,
+    #                             new_arable_land_pctg,
+    #                             pasture_land,
+    #                             new_pasture_land_pctg,
+    #                             ]
 
-                submit_scenario(user_id, ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, extra_values=extra_values)
+    #             submit_scenario(user_id, ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, extra_values=extra_values)
 
     if plot_key != "Summary":
         with bottom():
