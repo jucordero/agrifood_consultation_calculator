@@ -148,7 +148,8 @@ def pipeline_setup(food_system):
     
     food_system.add_node(scale_production,
                             {"scale_factor":1+st.session_state.stock_density/100,
-                             "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743]})
+                             "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743],
+                             "elasticity":[st.session_state.elasticity, 1-st.session_state.elasticity]})
 
     # food_system.add_node(scale_production,
     #                         {"scale_factor":1-st.session_state.methane_prod_factor*st.session_state.methane_inhibitor/100,

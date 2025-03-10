@@ -777,7 +777,7 @@ def scale_impact(datablock, scale_factor, items=None):
 
     return datablock
 
-def scale_production(datablock, scale_factor, items=None):
+def scale_production(datablock, scale_factor, items=None, elasticity=None):
     """ Scales the production values for the selected items by multiplying them by
     a multiplicative factor.
     """
@@ -793,13 +793,14 @@ def scale_production(datablock, scale_factor, items=None):
     scale_prod = logistic_food_supply(food_orig, timescale, 1, scale_factor)
 
     out = food_orig.fbs.scale_add(element_in="production",
-                                element_out="imports",
+                                element_out=["production", "imports"],
                                 scale=scale_prod,
                                 items=items,
-                                add=False)
+                                add=False,
+                                elasticity=elasticity)
     
     # Reduce feed and seed
-    out = feed_scale(out, food_orig)
+    out = feed_scale(out, food_orig, source = "imports")
 
     out = check_negative_source(out, "production", "imports")
     out = check_negative_source(out, "imports", "exports", add=False)
@@ -1008,7 +1009,7 @@ def agroecology_model(datablock, land_percentage, land_type,
 
     return datablock
 
-def feed_scale(fbs, ref):
+def feed_scale(fbs, ref, elasticity=None, source="production"):
     """Scales the feed, seed and processing quantities according to the change
     in production of animal and vegetal products"""
 
@@ -1029,15 +1030,27 @@ def feed_scale(fbs, ref):
     processing_scale = fbs["production"].sum(dim="Item") \
                 / ref["production"].sum(dim="Item")
 
-    out = fbs.fbs.scale_add(element_in="feed", element_out="production",
-                            scale=feed_scale)
+    if elasticity is not None:
+        out = fbs.fbs.scale_add(element_in="feed", element_out=source,
+                                scale=feed_scale, elasticity=elasticity)
+        
+        out = out.fbs.scale_add(element_in="seed",element_out=source,
+                                scale=seed_scale, elasticity=elasticity)
+        
+        out = out.fbs.scale_add(element_in="processing",element_out=source,
+                                scale=processing_scale, elasticity=elasticity)
     
-    out = out.fbs.scale_add(element_in="seed",element_out="production",
-                            scale=seed_scale)
-    
-    out = out.fbs.scale_add(element_in="processing",element_out="production",
-                            scale=processing_scale)
-    
+    else:
+        out = fbs.fbs.scale_add(element_in="feed", element_out=source,
+                                scale=feed_scale)
+        
+        out = out.fbs.scale_add(element_in="seed",element_out=source,
+                                scale=seed_scale)
+        
+        out = out.fbs.scale_add(element_in="processing",element_out=source,
+                                scale=processing_scale)
+
+
     return out
 
 def check_negative_source(fbs, source, fallback=None, add=True):
