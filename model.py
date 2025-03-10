@@ -798,6 +798,12 @@ def scale_production(datablock, scale_factor, items=None):
                                 items=items,
                                 add=False)
     
+    # Reduce feed and seed
+    out = feed_scale(out, food_orig)
+
+    out = check_negative_source(out, "production", "imports")
+    out = check_negative_source(out, "imports", "exports", add=False)
+    
     ratio = out / food_orig
     ratio = ratio.where(~np.isnan(ratio), 1)
 
