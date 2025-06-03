@@ -57,7 +57,7 @@ set_advanced_settings()
 with open('utils/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-if st.session_state.first_run:
+if st.session_state.first_run and not st.session_state["embedding"]:
     st.session_state.first_run = False
     first_run_dialog()
 
@@ -106,22 +106,22 @@ with st.sidebar:
                          help_dialog=ruminant_help)
         
         text_plus_slider("Pig, poultry", "pig_poultry",
-                         help_dialog=ruminant_help)
+                         help_dialog=pig_poultry_help)
         
         text_plus_slider("Fish, seafood", "fish_seafood",
-                         help_dialog=ruminant_help)
+                         help_dialog=fish_seafood_help)
 
         text_plus_slider("Dairy", "dairy",
-                         help_dialog=ruminant_help)
+                         help_dialog=dairy_help)
         
         text_plus_slider("Eggs", "eggs",
-                         help_dialog=ruminant_help)
+                         help_dialog=eggs_help)
 
         text_plus_slider("Fruits, vegetables", "fruit_veg",max_value=500,
-                         help_dialog=ruminant_help)
+                         help_dialog=fruits_veg_help)
         
         text_plus_slider("Pulses", "pulses", max_value=500,
-                         help_dialog=ruminant_help)
+                         help_dialog=pulses_help)
 
         text_plus_slider("Alternative meat", "meat_alternatives", min_value=0,
                          help_dialog=alternative_products_help)
@@ -227,7 +227,8 @@ with st.sidebar:
         pop_projection = selectbox_plus_icon("Population projection",
                                         ["Low", "Medium", "High", "Zero migration"],
                                         default="Medium",
-                                        key="pop_proj")
+                                        key="pop_proj",
+                                        help_dialog=population_help)
 
         selectbox_plus_icon("Crops yield projection",
                             [-0.27, 0.0, 0.34, 0.58],
@@ -255,7 +256,7 @@ datablock_result = food_system.datablock
 # -------------------
 # Execute plots block
 # -------------------
-from plots import plots
+from plots.plots import plots
 extra_values = plots(datablock_result)
 
 with st.sidebar:
@@ -273,7 +274,7 @@ with st.sidebar:
         st.caption("""By clicking ‘Submit’ you are agreeing to our [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
         submit_state = st.button("Submit", key="submit_scenario")
         if submit_state:
-            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, extra_values=extra_values)
+            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, datablock=datablock_result)
 
     st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
     
