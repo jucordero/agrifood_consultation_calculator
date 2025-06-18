@@ -13,6 +13,8 @@ from pipeline_setup import pipeline_setup
 from glossary import *
 from consultation_utils import get_pathways, call_scenarios, submit_scenario
 
+timer = Timer()
+
 if "cereal_scaling" not in st.session_state:
     st.session_state["cereal_scaling"] = True
 
@@ -61,6 +63,8 @@ if st.session_state.first_run and not st.session_state["embedding"]:
     st.session_state.first_run = False
     first_run_dialog()
 
+timer.ping("Page setup")
+
 with st.sidebar:
 
 # ------------------------
@@ -97,7 +101,6 @@ with st.sidebar:
                      key="scenario",
                      label_visibility="collapsed")
         
-
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumption**", expanded=False):
@@ -142,7 +145,10 @@ with st.sidebar:
 
         text_plus_slider("Broadleaf %", "bdleaf_conif_ratio", min_value=0, value=75)
 
-        text_plus_slider("BECCS crops", "land_BECCS", min_value=0,
+        text_plus_slider("Arable to BECCS crops", "land_BECCS", min_value=0,
+                         help_dialog=beccs_help)
+        
+        text_plus_slider("Pasture to BECCS crops", "land_BECCS_pasture", min_value=0,
                          help_dialog=beccs_help)
 
         text_plus_slider("Lowland peat", "lowland_peatland", min_value=0,
@@ -184,6 +190,8 @@ with st.sidebar:
         
         text_plus_slider("Fossil fuel use", "fossil_livestock", min_value=0, max_value=100,
                      help_dialog=peatland_restoration_help)
+        
+        text_plus_slider("Livestock productivity", "livestock_yield", min_value=50, value=100, max_value=150, sign=False)
 
     # Arable farming practices
 
@@ -211,14 +219,17 @@ with st.sidebar:
         text_plus_slider("Waste BECCS", "waste_BECCS", min_value=0,
                          help_dialog=waste_help, sign=False, percentage=False, 
                          suffix=" Mt CO2e/yr")
-        
                         
         text_plus_slider("Overseas BECCS", "overseas_BECCS", min_value=0,
                          help_dialog=beccs_overseas_help, sign=False, percentage=False,
                          suffix=" Mt CO2e/yr")
         
-        text_plus_slider("DACCS", "DACCS", min_value=0,
+        text_plus_slider("DACCS", "DACCS", min_value=0, max_value=20,
                          help_dialog=daccs_help, sign=False, percentage=False,
+                         suffix=" Mt CO2e/yr")
+        
+        text_plus_slider("Biochar", "biochar", min_value=0, max_value=10,
+                         help_dialog=biochar_help, sign=False, percentage=False,
                          suffix=" Mt CO2e/yr")
 
         
@@ -231,7 +242,7 @@ with st.sidebar:
                                         help_dialog=population_help)
 
         selectbox_plus_icon("Crops yield projection",
-                            [-0.27, 0.0, 0.34, 0.58],
+                            [-0.27, 0.0, 0.16, 0.34],
                             default=0.0,
                             format_func=format_yield_proj,
                             key="yield_proj",
@@ -243,21 +254,29 @@ with st.sidebar:
                             format_func=format_elasticity,
                             key="elasticity",
                             help_dialog=trade_help)
+        
+    timer.ping("Sidebar setup")
 
 # ----------------------------------------
 #                  Main
 # ----------------------------------------
 
+run_params = set_run_params_dict()
+# print(run_params)
 food_system = Pipeline(datablock_setup(pop_projection))
-food_system = pipeline_setup(food_system)
+food_system = pipeline_setup(food_system, run_params)
 food_system.run()
 datablock_result = food_system.datablock
+
+timer.ping("Pipeline run")
 
 # -------------------
 # Execute plots block
 # -------------------
 from plots.plots import plots
 extra_values = plots(datablock_result)
+
+timer.ping("Plots executed")
 
 with st.sidebar:
     with st.expander("**:arrow_right: Submit slider positions**"):
@@ -276,7 +295,15 @@ with st.sidebar:
         if submit_state:
             submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, datablock=datablock_result)
 
-    st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
+    cols_buttons = st.columns(2)
+
+    with cols_buttons[0]:
+        st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
+
+    with cols_buttons[1]:
+        if st.button("Clear cache", help="Clear the cache to read advanced settings and scenarios list"):
+            st.cache_data.clear()
+            st.rerun()
     
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
     
@@ -288,6 +315,8 @@ with st.sidebar:
     
     if st.button("Help"):
         first_run_dialog()
+
+timer.total("Total time taken")
 
 # -----------------------------
 #  Testing

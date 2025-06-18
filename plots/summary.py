@@ -46,7 +46,6 @@ def plot_summary(datablock, background_color):
 
     with col_comp_1:
 
-        ssr_metric = st.session_state["ssr_metric"]
         # Emissions and removals balance
         with st.container(height=850, border=True):
 
@@ -96,7 +95,8 @@ def plot_summary(datablock, background_color):
     with col_comp_2:
 
         # Self-sufficiency ratio
-        with st.container(height=450, border=True):
+        ssr_metric = st.session_state["ssr_metric"]
+        with st.container(height=375, border=True):
 
             SSR_ref = datablock["metrics"]["SSR_ref"]
             SSR_metric_yr = datablock["metrics"]["SSR_metric_yr"]
@@ -163,18 +163,18 @@ def plot_summary(datablock, background_color):
 
             st.altair_chart(production_bar, use_container_width=True)
             st.altair_chart(imports_bar, use_container_width=True)
-            st.selectbox("Select metric",
+            # st.selectbox("Select metric",
                             
-                            ["g/cap/day",
-                            "g_prot/cap/day",
-                            "g_fat/cap/day",
-                            "g_co2e/cap/day",
-                            "kCal/cap/day",],
+            #                 ["g/cap/day",
+            #                 "g_prot/cap/day",
+            #                 "g_fat/cap/day",
+            #                 "g_co2e/cap/day",
+            #                 "kCal/cap/day",],
 
-                            key="update_ssr_metric",
-                            on_change=update_SSR_metric,
-                            label_visibility="collapsed",
-                            placeholder="Select metric")
+            #                 key="update_ssr_metric",
+            #                 on_change=update_SSR_metric,
+            #                 label_visibility="collapsed",
+            #                 placeholder="Select metric")
             
             # st.caption('''<div style="text-align: justify;">
             # This panel calculates how much the UK relies on food imports, by
@@ -190,18 +190,43 @@ def plot_summary(datablock, background_color):
 
         
         # Production
-        with st.container(height=392, border=True):
+        with st.container(height=392+75, border=True):
 
-            new_dairy_herd = datablock["metrics"]["new_dairy_herd"]
-            new_beef_herd = datablock["metrics"]["new_beef_herd"]
+            new_dairy_herd = datablock["metrics"]["new_dairy_herd"].isel(Year=-1)
+            new_beef_herd = datablock["metrics"]["new_beef_herd"].isel(Year=-1)
+            new_poultry_heads = datablock["metrics"]["new_poultry_heads"].isel(Year=-1)
+            new_pig_heads = datablock["metrics"]["new_pig_heads"].isel(Year=-1)
+            new_sheep_flock = datablock["metrics"]["new_sheep_flock"].isel(Year=-1)
             baseline_dairy_herd = datablock["metrics"]["baseline_dairy_herd"]
             baseline_beef_herd = datablock["metrics"]["baseline_beef_herd"]
+            baseline_poultry_heads = datablock["metrics"]["baseline_poultry_heads"]
+            baseline_pig_heads = datablock["metrics"]["baseline_pig_heads"]
+            baseline_sheep_flock = datablock["metrics"]["baseline_sheep_flock"]
 
             st.markdown('''**Production and consumption**''')
 
-            st.metric(label="Herd size", value=f"{millify(new_dairy_herd+new_beef_herd, precision=2)}",
+            cols = st.columns(3)
+            with cols[0]:
+                st.metric(label="Herd size", value=f"{millify(new_dairy_herd+new_beef_herd, precision=2)}",
                         delta=millify(new_dairy_herd+new_beef_herd - baseline_dairy_herd - baseline_beef_herd, precision=2))
-            
+            with cols[1]:
+                st.metric(label="Dairy herd", value=f"{millify(new_dairy_herd, precision=2)}",
+                        delta=millify(new_dairy_herd - baseline_dairy_herd, precision=2))
+            with cols[2]:
+                st.metric(label="Beef herd", value=f"{millify(new_beef_herd, precision=2)}",
+                        delta=millify(new_beef_herd - baseline_beef_herd, precision=2))
+                
+            with cols[0]:
+                st.metric(label="Poultry heads", value=f"{millify(new_poultry_heads, precision=2)}",
+                        delta=millify(new_poultry_heads - baseline_poultry_heads, precision=2))
+            with cols[1]:
+                st.metric(label="Pig heads", value=f"{millify(new_pig_heads, precision=2)}",
+                        delta=millify(new_pig_heads - baseline_pig_heads, precision=2))
+            with cols[2]:
+                st.metric(label="Sheep flock", value=f"{millify(new_sheep_flock, precision=2)}",
+                        delta=millify(new_sheep_flock - baseline_sheep_flock, precision=2))
+
+
     with col_comp_3:
         
         # Land use

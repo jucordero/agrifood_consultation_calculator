@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import time
 
 # Helper Functions
 
@@ -20,50 +21,37 @@ default_widget_values = {
 
     # Consumer demand sliders and widgets
     "ruminant": 0,
+    "pig_poultry": 0,
     "fish_seafood": 0,
     "dairy": 0,
     "eggs": 0,
-    "pig_poultry": 0,
-    "pulses": 0,
     "fruit_veg": 0,
+    "pulses": 0,
     "cereals": 0,
     "meat_alternatives": 0,
     "dairy_alternatives":0,
     "waste": 0,
     
-    "meat":0,
-    "dairy_eggs":0,
-    "fruit_veg_pulses":0,
-    "alternative":0,
-    "food_waste":0,
-
     # Land use sliders and widgets
     "foresting_pasture": 13.17,
+    "bdleaf_conif_ratio":75,
     "land_BECCS": 0,
+    "land_BECCS_pasture": 0,
     "lowland_peatland": 0,
     "upland_peatland": 0,
-    "mixed_farming": 0,
-    "bdleaf_conif_ratio":75,
-    "peatland":0,
-    "shift_production":0,
     "horticulture":0,
     "pulse_production":0,
-
-    # Technology and innovation sliders and widgets
-    "waste_BECCS": 0,
-    "overseas_BECCS": 0,
-    "DACCS": 0,
+    "mixed_farming": 0,
 
     # Livestock farming sliders and widgets
-    "stock_density": 0,
     "silvopasture": 0,
+    "stock_density": 0,
+    "pasture_soil_carbon": 0,
     "methane_inhibitor": 0,
     "manure_management": 0,
     "animal_breeding": 0,
     "fossil_livestock": 0,
-    "pasture_soil_carbon": 0,
-
-    "livestock_farming_practices":0,
+    "livestock_yield":100,
 
     # Arable farming sliders and widgets
     "arable_soil_carbon": 0,
@@ -72,7 +60,16 @@ default_widget_values = {
     "fossil_arable": 0,
     "vertical_farming": 0,
 
-    "arable_farming_practices":0,
+    # Technology and innovation sliders and widgets
+    "waste_BECCS": 0,
+    "overseas_BECCS": 0,
+    "DACCS": 0,
+    "biochar":0,
+
+    # Scenario settings
+    "yield_proj":0,
+    "elasticity":0.5,
+    "pop_proj":"Medium"
 
 }
 
@@ -167,7 +164,7 @@ def read_help():
     """Reads the tooltip text from tooltips URL"""
     return pd.read_csv(st.secrets["tooltips_url"], dtype='string')
 
-# @st.cache_data(ttl=60*60*24)
+@st.cache_data(ttl=60*60*24)
 def read_advanced_settings():
     """Reads the advanced settings from the spreadsheet URL"""
     advanced_settings  = pd.read_csv(st.secrets["advanced_settings_url"], dtype='string')
@@ -215,7 +212,29 @@ def format_yield_proj(x):
         return "Climate sensitivity"
     elif x == 0.0:
         return "Baseline"
-    elif x == 0.34:
+    elif x == 0.16:
         return "Medium"
-    elif x == 0.58:
+    elif x == 0.34:
         return "High"
+    
+class Timer:
+    def __init__(self):
+        self.start_time = time.time()
+        self.last_ping_time = self.start_time
+
+    def ping(self, message="Timer since last ping: "):
+        current_time = time.time()
+        elapsed_since_last_ping = current_time - self.last_ping_time
+        self.last_ping_time = current_time
+        print(f"{message} {elapsed_since_last_ping:.2f} seconds")
+
+    def total(self, message="Total time elapsed: "):
+        total_elapsed_time = time.time() - self.start_time
+        print(f"{message} {total_elapsed_time:.2f} seconds")
+
+def set_run_params_dict():
+
+    params = {k:st.session_state[k] for k in list(default_widget_values.keys())}
+    params.update(read_advanced_settings())
+    params["cereal_scaling"] = True
+    return params
