@@ -24,7 +24,7 @@ def map_max(map, dim):
 
 def plot_summary(datablock, background_color):
 
-    reference_emissions_baseline = 94.24
+    reference_emissions_baseline = 94.78
     reference_emissions_baseline_agriculture = 53.69
 
     if not st.session_state["embedding"]:
@@ -53,6 +53,7 @@ def plot_summary(datablock, background_color):
             total_seq = datablock["metrics"]["total_sequestration"]
             total_removals = datablock["metrics"]["total_removals"]
             total_emissions = datablock["metrics"]["total_emissions"]
+            agricultural_emissions = datablock["metrics"]["agricultural_emissions"]
             
             st.markdown('''**UK Emissions balance**''')
                 
@@ -75,7 +76,7 @@ def plot_summary(datablock, background_color):
                 delta_color="inverse")
             
             st.metric(label="Sequestration and removals", value="{:.2f} Mt CO2e / year".format(total_seq + total_removals))
-            st.metric(label="Agricultural emissions", value="{:.2f} Mt CO2e / year".format(total_emissions))
+            st.metric(label="Agricultural emissions", value="{:.2f} Mt CO2e / year".format(agricultural_emissions))
 
             # st.markdown(f"Total emissions: **{emissions_balance.sum().to_numpy():.2f} Mt CO2e / year**")
             # st.caption('''<div style="text-align: justify;">
