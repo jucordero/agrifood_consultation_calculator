@@ -19,14 +19,19 @@ default_widget_values = {
     # Scenario
     "scenario": "Baseline",
 
+    # Scenario settings
+    "pop_proj":"Medium",
+    "yield_proj":0,
+    "elasticity":0.5,
+
     # Consumer demand sliders and widgets
     "ruminant": 0,
-    "pig_poultry": 0,
-    "fish_seafood": 0,
     "dairy": 0,
+    "pig_poultry": 0,
     "eggs": 0,
-    "fruit_veg": 0,
+    "fish_seafood": 0,
     "pulses": 0,
+    "fruit_veg": 0,
     "cereals": 0,
     "meat_alternatives": 0,
     "dairy_alternatives":0,
@@ -54,27 +59,22 @@ default_widget_values = {
     "livestock_yield":100,
 
     # Arable farming sliders and widgets
-    "arable_soil_carbon": 0,
-    "nitrogen": 0,
     "agroforestry": 0,
+    "arable_soil_carbon": 0,
     "fossil_arable": 0,
+    "nitrogen": 0,
     "vertical_farming": 0,
 
     # Technology and innovation sliders and widgets
     "waste_BECCS": 0,
     "overseas_BECCS": 0,
     "DACCS": 0,
-    "biochar":0,
-
-    # Scenario settings
-    "yield_proj":0,
-    "elasticity":0.5,
-    "pop_proj":"Medium"
-
+    "biochar":0
 }
 
 def reset_sliders(keys=None):
     """Resets the selected sliders to their default values"""
+    st.query_params.clear()
     if keys is None:
         for key in default_widget_values.keys():
             update_slider(keys=[key], values=[default_widget_values[key]])

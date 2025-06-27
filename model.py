@@ -1348,7 +1348,6 @@ def production_land_scale(datablock, bdleaf_conif_ratio):
 
     land = datablock["land"]["percentage_land_use"].copy(deep=True)
     obs = datablock["food"]["g/cap/day"].copy(deep=True)
-    # print(obs)
     ref = datablock["food"]["baseline_projected"].copy(deep=True)
 
     # Obtain reference and observed production values
@@ -1661,8 +1660,6 @@ def compute_metrics(datablock):
 
     for qk, nk in zip(qty_keys, nutrition_keys):
         datablock["food"][qk] = datablock["food"][nk] * datablock["food"]["g/cap/day"]
-
-    print(datablock["food"]["g_prot/cap/day"])
 
     # Emissions balance
     metric_yr = 2050
