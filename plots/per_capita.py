@@ -28,6 +28,18 @@ def plot_per_capita(datablock):
     to_plot = to_plot.fbs.group_sum(coordinate=dissagregation, new_name="Item")
     to_plot = to_plot.sel(item_selection)
 
+    to_plot = to_plot.rename({"food": "Retail"})
+    to_plot = to_plot.rename({"production": "Production"})
+    to_plot = to_plot.rename({"imports": "Imports"})
+    to_plot = to_plot.rename({"exports": "Exports"})
+    to_plot = to_plot.rename({"stock": "Stock"})
+    to_plot = to_plot.rename({"losses": "Losses"})
+    to_plot = to_plot.rename({"processing": "Processing"})
+    to_plot = to_plot.rename({"other": "Other"})
+    to_plot = to_plot.rename({"feed": "Feed"})
+    to_plot = to_plot.rename({"seed": "Seed"})
+    
+
     if adjust_scale:
         f = plot_bars_altair(to_plot, show="Item", x_axis_title=option_key, xlimit=per_cap_options[option_key])
     else:

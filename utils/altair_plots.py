@@ -139,7 +139,7 @@ def plot_bars_altair(food, show="Item", x_axis_title='', xlimit=None, labels=Non
     n_origins = len(food.Item.values)
 
     df = food.to_dataframe().reset_index().fillna(0)
-    df = df.melt(id_vars=show, value_vars=["production", "imports", "exports", "stock", "losses", "processing", "other", "feed", "seed", "food"])
+    df = df.melt(id_vars=show, value_vars=["Production", "Imports", "Exports", "Stock", "Losses", "Processing", "Other", "Feed", "Seed", "Retail"])
     df["value_start"] = 0.
     df["value_end"] = 0.
 
@@ -405,6 +405,8 @@ def plot_single_bar_altair(da, show="Item", axis_title=None,
         c = c.properties(width=bar_width)
     else:
         c = c.properties(height=bar_width)
+
+    c = c.interactive()
 
     return c
 

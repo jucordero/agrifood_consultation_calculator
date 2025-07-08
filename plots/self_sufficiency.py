@@ -10,7 +10,7 @@ def plot_self_sufficiency(datablock):
 
     # Inputs
     with col3_ssr:
-        ssr_metric = st.selectbox("Metric", ["g/cap/day", "kCal/cap/day", "g_prot/cap/day", "g_fat/cap/day"])
+        ssr_metric = st.selectbox("Metric", ["g/cap/day", "kCal/cap/day", "g_prot/cap/day", "g_fat/cap/day", "g_co2e/cap/day"],)
         dissagregation = st.selectbox("Disaggregation", ["Item_name", "Item_group", "Item_origin"])
         item_selection = {}
         item_list = st.multiselect("Food item", np.unique(datablock["food"][ssr_metric][dissagregation].values))
