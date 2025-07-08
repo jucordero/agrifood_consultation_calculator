@@ -1854,27 +1854,27 @@ def compute_metrics(datablock):
 
     gcapday = datablock["food"]["g/cap/day"]["production"]
 
-    baseline_potatoes_area_mha = 0.012
+    baseline_potatoes_area_mha = st.session_state["baseline_potato_area"]
     baseline_potato_production = pop_baseline * gcapday.sel(Year=2020, Item=2531).fillna(0).sum().values
     new_potato_production = pop_new * gcapday.sel(Year=metric_yr, Item=2531).fillna(0).sum().values
     new_potato_area = baseline_potatoes_area_mha * new_potato_production / baseline_potato_production
     datablock["metrics"]["new_potato_area"] = new_potato_area
     
 
-    baseline_oilseed_area_mha = 0.418
+    baseline_oilseed_area_mha = st.session_state["baseline_oilseed_area"]
     baseline_oilseed_production = pop_baseline * gcapday.sel(Year=2020, Item=[2570, 2572, 2573, 2575, 2576, 2577, 2578, 2579, 2581, 2582, 2586 ]).fillna(0).sum().values
     new_oilseed_production = pop_new * gcapday.sel(Year=metric_yr, Item=[2570, 2572, 2573, 2575, 2576, 2577, 2578, 2579, 2581, 2582, 2586 ]).fillna(0).sum().values
     new_oilseed_area = baseline_oilseed_area_mha * new_oilseed_production / baseline_oilseed_production
     datablock["metrics"]["new_oilseed_area"] = new_oilseed_area
 
-    baseline_cereal_area_mha = 3.1
+    baseline_cereal_area_mha = st.session_state["baseline_cereal_area"]
     baseline_cereal_production = pop_baseline * gcapday.sel(Year=2020, Item=gcapday.Item_group=="Cereals - Excluding Beer").fillna(0).sum().values
     new_cereal_production = pop_new * gcapday.sel(Year=metric_yr, Item=gcapday.Item_group=="Cereals - Excluding Beer").fillna(0).sum().values
     
     new_cereal_area = baseline_cereal_area_mha * new_cereal_production / baseline_cereal_production
     datablock["metrics"]["new_cereal_area"] = new_cereal_area
     
-    baseline_horticulture_area_mha = 0.145
+    baseline_horticulture_area_mha = st.session_state["baseline_horticulture_area"]
     new_horiticulture_area = baseline_horticulture_area_mha * total_arable / baseline_arable * (1+st.session_state["horticulture"]/100)
     datablock["metrics"]["new_horticulture_area"] = new_horiticulture_area
 
