@@ -4,6 +4,8 @@ from model import *
 
 def pipeline_setup(food_system, params):
 
+    food_system.datablock["run_parameters"] = params
+
     # Global parameters
     food_system.datablock_write(["global_parameters", "timescale"], params["n_scale"])
 
@@ -329,5 +331,14 @@ def pipeline_setup(food_system, params):
 
     # Compute additional metrics 
     food_system.add_node(compute_metrics)
+
+    # Generate pathway URL
+    food_system.add_node(generate_API_url,
+                         {"keys":[
+                             "ruminant",
+                             "pig_poultry",
+                             "fish_seafood",
+                             ]}
+    )
 
     return food_system

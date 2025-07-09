@@ -1921,3 +1921,17 @@ def label_new_forest(datablock):
     datablock["land"]["percentage_land_use"] = land
 
     return datablock
+
+def generate_API_url(datablock, base_url="https://sarahjp-hack.streamlit.app/?", keys=None):
+    """Generates a URL for the current model run"""
+
+    url = base_url
+
+    if keys is None:
+        keys = []
+    for key in keys:
+        url += f"{key}={datablock['run_parameters'][key]}&"        
+
+    datablock["URL"] = url
+
+    return datablock

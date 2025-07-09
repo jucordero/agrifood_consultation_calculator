@@ -36,7 +36,8 @@ def get_user_list():
 
 @st.dialog("Submit scenario")
 def submit_scenario(name, ambition_levels=False, check_users=True,
-                    datablock=None, user_id=None, worksheet=None):
+                    datablock=None, user_id=None, worksheet=None,
+                    generate_url=False):
     """Submit the pathway to the Google Sheet.
 
     Parameters:
@@ -73,8 +74,14 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
     
     if name is None or name == "":
         name = "Anonymous submission"
-    
-    row = [name]
+
+    if generate_url and datablock is not None:
+        url = datablock["URL"]
+        name_to_cell = f'=HYPERLINK("{url}", "{name}")'
+    else:
+        name_to_cell = name
+
+    row = [name_to_cell]
 
     # Append slider values. Skip the scenario key
     for key in list(default_widget_values.keys())[1:]:
@@ -118,10 +125,18 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
         values_formatted = ['{0:.3f}'.format(val) for val in extra_values]
         row.extend(values_formatted)
 
-    ws.append_row(row)
+    with st.spinner("Submitting scenario..."):
+        ws.append_row(row)
+
+        last_row = len(ws.col_values(1))
+        ws.update_cell(last_row, 1, name_to_cell)
+
     st.success(f'Succesfully submitted scenario {name}', icon="✅")
-    st.write("""If you want to modify your submission, please use the same
-                scenario name as before.""")
+    st.write("""Thank you four submission! If you would like to share your
+             scenario with others, please copy the URL below.""")
+    if generate_url:
+        url = build_url()
+        st.code(url, wrap_lines=True, language=None, height=100)
 
 @st.cache_data(ttl=60*60*24)
 def get_pathways():
@@ -190,10 +205,11 @@ if __name__ == "__main__":
 
     print(get_user_list())
 
-def build_url():
+def build_url(base_url=APP_BASE_URL):
     """Builds a URL to access the current pathway."""
 
-    url = APP_BASE_URL
+    url = base_url
+    url += "?embedding=true&"
 
     # Skip first key, which is the scenario name
     for key in list(default_widget_values.keys())[1:]:
