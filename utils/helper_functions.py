@@ -235,6 +235,17 @@ class Timer:
 def set_run_params_dict():
 
     params = {k:st.session_state[k] for k in list(default_widget_values.keys())}
-    params.update(read_advanced_settings())
+
+    adv_set_dict = read_advanced_settings() 
+
+    # Read query parameters and extract those that are advanced settings keys
+    query_advanced_settings = np.intersect1d(list(st.query_params.keys()), list(adv_set_dict.keys()))
+    if len(query_advanced_settings) > 0:
+        for k in query_advanced_settings:
+            if k in adv_set_dict:
+                adv_set_dict[k] = float(st.query_params[k])
+
+
+    params.update(adv_set_dict)
     params["cereal_scaling"] = True
     return params
