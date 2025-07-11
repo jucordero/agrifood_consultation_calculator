@@ -76,7 +76,7 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
         name = "Anonymous submission"
 
     if generate_url and datablock is not None:
-        url = datablock["URL"]
+        url = build_url()
         name_to_cell = f'=HYPERLINK("{url}", "{name}")'
     else:
         name_to_cell = name
@@ -135,8 +135,7 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
     st.write("""Thank you four submission! If you would like to share your
              scenario with others, please copy the URL below.""")
     if generate_url:
-        url = build_url()
-        st.code(url, wrap_lines=True, language=None, height=100)
+        st.code(url, wrap_lines=True, language=None)
 
 @st.cache_data(ttl=60*60*24)
 def get_pathways():
