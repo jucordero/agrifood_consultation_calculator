@@ -1835,6 +1835,16 @@ def compute_metrics(datablock):
                                                "Mixed farming",
                                                "Agroforestry"]).sum().values
     
+    total_agroforestry = totals.sel(aggregate_class="Agroforestry").sum().values
+    total_silvopasture = totals.sel(aggregate_class="Silvopasture").sum().values
+    total_mixed_farming = totals.sel(aggregate_class="Mixed farming").sum().values
+    total_beccs = totals.sel(aggregate_class="BECCS").sum().values
+
+    print(total_agroforestry, total_silvopasture, total_mixed_farming, total_beccs)
+    
+    beccs_on_pasture = total_beccs * st.session_state["land_BECCS_pasture"] / (st.session_state["land_BECCS_pasture"] + st.session_state["land_BECCS"])
+    beccs_on_arable = total_beccs * st.session_state["land_BECCS"] / (st.session_state["land_BECCS_pasture"] + st.session_state["land_BECCS"])
+
     baseline_arable = datablock["land"]["baseline"].sel(aggregate_class=["Arable"]).sum().values
 
     new_arable_land_pctg = (total_arable - baseline_arable) / baseline_arable * 100
@@ -1849,6 +1859,13 @@ def compute_metrics(datablock):
     datablock["metrics"]["new_forest_land"] = new_forest_land
     datablock["metrics"]["new_arable_land_pctg"] = new_arable_land_pctg
     datablock["metrics"]["new_pasture_land_pctg"] = new_pasture_land_pctg
+
+    datablock["metrics"]["total_agroforestry"] = total_agroforestry
+    datablock["metrics"]["total_silvopasture"] = total_silvopasture
+    datablock["metrics"]["total_mixed_farming"] = total_mixed_farming
+    datablock["metrics"]["total_beccs"] = total_beccs
+    datablock["metrics"]["beccs_on_pasture"] = beccs_on_pasture
+    datablock["metrics"]["beccs_on_arable"] = beccs_on_arable
 
     # Crop sizes
 

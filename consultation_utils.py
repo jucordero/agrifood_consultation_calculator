@@ -118,7 +118,15 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
                         datablock["metrics"]["total_arable"]/1e6,
                         datablock["metrics"]["new_arable_land_pctg"],
                         datablock["metrics"]["total_pasture"]/1e6,                            
-                        datablock["metrics"]["new_pasture_land_pctg"]]
+                        datablock["metrics"]["new_pasture_land_pctg"],
+                        0,
+                        datablock["metrics"]["total_agroforestry"]/1e6,
+                        datablock["metrics"]["total_silvopasture"]/1e6,
+                        datablock["metrics"]["total_mixed_farming"]/1e6,
+                        datablock["metrics"]["beccs_on_arable"]/1e6,
+                        datablock["metrics"]["beccs_on_pasture"]/1e6,
+                        datablock["metrics"]["total_beccs"]/1e6,
+                        ]
         
         if np.isscalar(extra_values):
             extra_values = [extra_values]
