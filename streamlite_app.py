@@ -67,6 +67,8 @@ timer.ping("Page setup")
 
 with st.sidebar:
 
+    st.image("https://futurefoodcalculator.org/assets/global/Logos/FutureFoodCalculator_logo_v2.svg")
+
 # ------------------------
 #        Sidebar
 # ------------------------
