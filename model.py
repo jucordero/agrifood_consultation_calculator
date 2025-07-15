@@ -888,8 +888,10 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS, biochar):
     # Compute the total area of BECCS land used in hectares, and the total
     # sequestration in Mt CO2e / year
 
-    land_BECCS_area = pctg.sel({"aggregate_class":"BECCS"}).sum().to_numpy()
-    land_BECCS = land_BECCS_area * st.session_state.beccs_crops_seq_ha_yr
+    pasture_BECCS_area = pctg.sel({"aggregate_class":"Bioenergy crops (pasture)"}).sum().to_numpy()
+    arable_BECCS_area = pctg.sel({"aggregate_class":"Bioenergy crops (arable)"}).sum().to_numpy()
+    land_BECCS = pasture_BECCS_area * st.session_state.BECCS_tco2_ha_yr
+    land_BECCS += arable_BECCS_area * st.session_state.BECCS_tco2_ha_yr
 
     logistic_0_val = logistic_food_supply(food_orig, timescale, 0, 1)
 
@@ -915,34 +917,6 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS, biochar):
         seq_da_in = datablock["impact"]["co2e_sequestration"]
         seq_da = xr.concat([seq_da_in, seq_da], dim="Item")
         datablock["impact"]["co2e_sequestration"] = seq_da
-
-    # Compute the total cost of sequestration in pounds per year
-    cost_BECCS_tCO2e = linear_scale(food_orig.Year.values[0],
-                              2030,
-                              2050,
-                              food_orig.Year.values[-1],
-                              c_init=123,
-                              c_end=93)
-    
-    cost_DACCS_tCO2e = linear_scale(food_orig.Year.values[0],
-                                    2030,
-                                    2050,
-                                    food_orig.Year.values[-1],
-                                    c_init=245,
-                                    c_end=180)
-
-    cost_waste_BECCS = waste_BECCS_seq_array * cost_BECCS_tCO2e
-    cost_overseas_BECCS = overseas_BECCS_seq_array * cost_BECCS_tCO2e
-    cost_land_BECCS = land_BECCS_seq_array * cost_BECCS_tCO2e
-    cost_DACCSS = DACCS_seq_array * cost_DACCS_tCO2e
-
-    cost_CCS_ds = xr.Dataset({"BECCS from waste": cost_waste_BECCS,
-                             "BECCS from overseas biomass": cost_overseas_BECCS,
-                             "BECCS from land": cost_land_BECCS,
-                             "DACCS": cost_DACCSS})
-    
-    cost_CCS_da = cost_CCS_ds.to_array(dim="Item", name="cost")
-    datablock["impact"]["cost"] = cost_CCS_da
 
     return datablock    
 
@@ -1677,7 +1651,10 @@ def compute_metrics(datablock):
                                  "Managed arable",
                                  "Mixed farming",
                                  "Silvopasture",
-                                 "Agroforestry"]).sum(dim="Item").values/1e6
+                                 "Agroforestry",
+                                 "Bioenergy crops (arable)",
+                                 "Bioenergy crops (pasture)",
+                                 ]).sum(dim="Item").values/1e6
     
     total_removals = seq_da.sel(Item=["BECCS from waste",
                                       "BECCS from overseas biomass",
@@ -1690,8 +1667,8 @@ def compute_metrics(datablock):
                             coords={"Sector": list(sector_emissions_dict.keys())})
     
     emissions_balance.loc[{"Sector": "Agriculture"}] = total_agriculture_emissions
-    emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
-    emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
+    emissions_balance.loc[{"Sector": "LU sinks"}] -= total_seq
+    emissions_balance.loc[{"Sector": "Removals"}] -= total_removals
 
     emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
     total_emissions = emissions_balance.sum().values
@@ -1838,10 +1815,8 @@ def compute_metrics(datablock):
     total_agroforestry = totals.sel(aggregate_class="Agroforestry").sum().values
     total_silvopasture = totals.sel(aggregate_class="Silvopasture").sum().values
     total_mixed_farming = totals.sel(aggregate_class="Mixed farming").sum().values
-    total_beccs = totals.sel(aggregate_class="BECCS").sum().values
+    total_beccs = totals.sel(aggregate_class=["Bioenergy crops (pasture)", "Bioenergy crops (arable)"]).sum().values
 
-    print(total_agroforestry, total_silvopasture, total_mixed_farming, total_beccs)
-    
     beccs_on_pasture = total_beccs * st.session_state["land_BECCS_pasture"] / (st.session_state["land_BECCS_pasture"] + st.session_state["land_BECCS"])
     beccs_on_arable = total_beccs * st.session_state["land_BECCS"] / (st.session_state["land_BECCS_pasture"] + st.session_state["land_BECCS"])
 

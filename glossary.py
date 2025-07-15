@@ -110,7 +110,8 @@ land_color_dict = {
     'Coastal' : "gray",
     'Built-up areas and gardens' : "gray",
     'Spared' : "purple",
-    'BECCS' : "red",
+    'Bioenergy crops (pasture)' : "red",
+    'Bioenergy crops (arable)' : "red",
     'Silvopasture' : "lightgreen",
     'Agroforestry' : "lightblue",
     'Restored upland peat' : "darkred",
@@ -134,7 +135,8 @@ land_label_dict = {
     'Coastal' : "Water",
     'Built-up areas and gardens' : "Non-agricultural",
     'Spared' : "Spared",
-    'BECCS' : "BECCS",
+    'Bioenergy crops (pasture)' : "BECCS",
+    'Bioenergy crops (arable)' : "BECCS",
     'Silvopasture' : "Silvopasture",
     'Agroforestry' : "Agroforestry",
     'Restored lowland peat' : "Restored peatland",
@@ -156,7 +158,7 @@ sector_emissions_dict = {
     "Buildings":1.11, # Sum of residential and non-residential
     "Transport":1.07,
     "LU sinks":0, # Set to be calculated by the model
-    "Removals":0, # Set to be calculated by the model
+    "Removals":-9.82, # Baseline removals, total to be calculated by the model
 }
 
 sector_emissions_colors = {
