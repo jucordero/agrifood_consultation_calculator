@@ -890,8 +890,8 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS, biochar):
 
     pasture_BECCS_area = pctg.sel({"aggregate_class":"Bioenergy crops (pasture)"}).sum().to_numpy()
     arable_BECCS_area = pctg.sel({"aggregate_class":"Bioenergy crops (arable)"}).sum().to_numpy()
-    land_BECCS = pasture_BECCS_area * st.session_state.BECCS_tco2_ha_yr
-    land_BECCS += arable_BECCS_area * st.session_state.BECCS_tco2_ha_yr
+    land_BECCS = pasture_BECCS_area * st.session_state.BECCS_pasture_tco2_ha_yr
+    land_BECCS += arable_BECCS_area * st.session_state.BECCS_arable_tco2_ha_yr
 
     logistic_0_val = logistic_food_supply(food_orig, timescale, 0, 1)
 
