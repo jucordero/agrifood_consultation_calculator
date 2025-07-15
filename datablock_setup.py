@@ -132,7 +132,9 @@ def datablock_setup(population_projection="Medium"):
         scale_ones = xr.DataArray(data = np.ones_like(food_uk.Year.values),
                             coords = {"Year":food_uk.Year.values})
 
-        extended_impact = UKNDC_FAOSTAT["GHG Emissions (IPCC 2013)"].drop_vars(["Item_name", "Item_group", "Item_origin"]) * scale_ones
+        print(UKNDC_FAOSTAT)
+        extended_impact = UKNDC_FAOSTAT["NDC_emissions_agriculture"].drop_vars(["Item_name", "Item_group", "Item_origin"]) * scale_ones
+        # extended_impact = UKNDC_FAOSTAT["NDC_emissions_land_use"].drop_vars(["Item_name", "Item_group", "Item_origin"]) * scale_ones
 
         datablock["impact"]["gco2e/gfood"] = extended_impact
 
