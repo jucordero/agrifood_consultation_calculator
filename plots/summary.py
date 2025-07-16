@@ -24,7 +24,7 @@ def map_max(map, dim):
 
 def plot_summary(datablock, background_color):
 
-    reference_emissions_baseline = 71.99
+    reference_emissions_baseline = 70.16
     reference_emissions_baseline_agriculture = 40.71
 
     if not st.session_state["embedding"]:

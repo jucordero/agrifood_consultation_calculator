@@ -150,7 +150,7 @@ sector_emissions_dict = {
     "Waste":5.11,
     "Shipping":0.51,
     "Aviation":22.67,
-    "LU sources":20.82, # Sum of 2025 land use sources
+    "LU sources":6.08, # Sum of 2050 land use sources
     "Agriculture":0, # Set to be calculated by the model
     "Fuel supply":1.57, 
     "Electricity":1.00,

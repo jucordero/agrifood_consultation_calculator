@@ -220,7 +220,7 @@ def pipeline_setup(food_system, params):
                           "scale_factor":params["nitrogen_ghg_factor"]*params["nitrogen"]/100})
 
     food_system.add_node(scale_impact,
-                            {"items":[2731, 2732],
+                            {"items":("Item_origin","Animal Products"),
                             "scale_factor":params["methane_ghg_factor"]*params["methane_inhibitor"]/100})
     
     food_system.add_node(scale_production,
@@ -232,7 +232,7 @@ def pipeline_setup(food_system, params):
     #                         "items":[2731, 2732]})
 
     food_system.add_node(scale_impact,
-                            {"items":[2731, 2732, 2733, 2735, 2948, 2740, 2743],
+                            {"items":("Item_origin","Animal Products"),
                             "scale_factor":params["manure_ghg_factor"]*params["manure_management"]/100})
 
     # food_system.add_node(scale_production,
@@ -240,7 +240,7 @@ def pipeline_setup(food_system, params):
     #                         "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743]})
 
     food_system.add_node(scale_impact,
-                            {"items":[2731, 2732],
+                            {"items":("Item_origin","Animal Products"),
                             "scale_factor":params["breeding_ghg_factor"]*params["animal_breeding"]/100})
 
     # food_system.add_node(scale_production,
