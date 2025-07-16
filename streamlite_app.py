@@ -11,7 +11,7 @@ from datablock_setup import datablock_setup
 from pipeline_setup import pipeline_setup
 
 from glossary import *
-from consultation_utils import get_pathways, call_scenarios, submit_scenario
+from consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
 
 timer = Timer()
 
@@ -67,6 +67,8 @@ timer.ping("Page setup")
 
 with st.sidebar:
 
+    st.image("https://futurefoodcalculator.org/assets/global/Logos/FutureFoodCalculator_logo_v2.svg")
+
 # ------------------------
 #        Sidebar
 # ------------------------
@@ -85,14 +87,7 @@ with st.sidebar:
                      key="scenario",
                      label_visibility="collapsed")
     
-        st.query_params.clear()
-        
     else:
-        if "ruminant" in st.query_params:
-            values = [int(x) for x in st.query_params.values()]
-            update_slider(list(st.query_params.keys()), values)
-            st.query_params.clear()
-
         st.selectbox("Scenario",
                      get_pathways(),
                      index=None,
@@ -100,7 +95,17 @@ with st.sidebar:
                      on_change=call_scenarios,
                      key="scenario",
                      label_visibility="collapsed")
-        
+
+    # Read query parameters and extract those that are slider keys (except first one)
+    query_param_keys = np.intersect1d(list(st.query_params.keys()), list(default_widget_values.keys())[1:])
+    if len(query_param_keys) > 0:
+        query_param_values = [
+            float(st.query_params[k]) if st.query_params[k].replace('.', '', 1).lstrip('-').isdigit() 
+            else st.query_params[k] 
+            for k in query_param_keys
+        ]
+        update_slider(query_param_keys, query_param_values)   
+    
     # Consumer demand interventions
 
     with st.expander("**:spaghetti: Consumption**", expanded=False):
@@ -278,23 +283,31 @@ extra_values = plots(datablock_result)
 
 timer.ping("Plots executed")
 
+@st.fragment
+def submit_menu():
+    st.markdown("""<div style="text-align: justify;">
+        Once you have used the sliders to select your preferred levels of
+        intervention, enter your scenario name in the field below and click
+        the "Submit" button.</div>""", unsafe_allow_html=True)
+    
+    submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden", key="submission_name")
+    
+    allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
+    
+    if st.secrets["branch"] == "sarah_jp_hack":
+        worksheet = st.selectbox("Select the worksheet to upload your submission to", options=get_worksheet_list(), key="submission_worksheet")
+    elif st.secrets["branch"] == "consultation":
+        worksheet = "Main branch submissions"
+    
+    st.caption("""By clicking ‘Submit’ you are agreeing to our [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
+    submit_state = st.button("Submit", key="submit_scenario")
+    if submit_state:
+        submit_scenario(name=submission_name, ambition_levels=True, check_users=st.session_state.check_ID, datablock=datablock_result, worksheet=worksheet, generate_url=True)
+
 with st.sidebar:
     with st.expander("**:arrow_right: Submit slider positions**"):
-        st.markdown("""<div style="text-align: justify;">
-            Once you have used the sliders to select your preferred levels of
-            intervention, enter your scenario name in the field below and click
-            the "Submit pathway" button. You can change your responses as many
-            times as you want before the expert submission deadline on 
-            23rd May 2025..</div>""", unsafe_allow_html=True)
-        
-        submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden", key="submission_name")
-        
-        allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
-        st.caption("""By clicking ‘Submit’ you are agreeing to our [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
-        submit_state = st.button("Submit", key="submit_scenario")
-        if submit_state:
-            submit_scenario(" ", ambition_levels=True, check_users=st.session_state.check_ID, name=submission_name, datablock=datablock_result)
-
+        submit_menu()
+    
     cols_buttons = st.columns(2)
 
     with cols_buttons[0]:

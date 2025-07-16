@@ -4,6 +4,8 @@ from model import *
 
 def pipeline_setup(food_system, params):
 
+    food_system.datablock["run_parameters"] = params
+
     # Global parameters
     food_system.datablock_write(["global_parameters", "timescale"], params["n_scale"])
 
@@ -105,11 +107,13 @@ def pipeline_setup(food_system, params):
                         {"land_type": "Arable",
                          "farm_percentage":params["land_BECCS"]/100,
                          "items":("Item_origin", "Vegetal Products"),
+                         "new_land_type":"Bioenergy crops (arable)",
                         })
     
     food_system.add_node(BECCS_farm_land,
                         {"land_type": ["Improved grassland", "Semi-natural grassland"],
                          "farm_percentage":params["land_BECCS_pasture"]/100,
+                         "new_land_type":"Bioenergy crops (pasture)",
                          "items":("Item_origin", "Animal Products"),
                         })
 
@@ -216,7 +220,7 @@ def pipeline_setup(food_system, params):
                           "scale_factor":params["nitrogen_ghg_factor"]*params["nitrogen"]/100})
 
     food_system.add_node(scale_impact,
-                            {"items":[2731, 2732],
+                            {"items":("Item_origin","Animal Products"),
                             "scale_factor":params["methane_ghg_factor"]*params["methane_inhibitor"]/100})
     
     food_system.add_node(scale_production,
@@ -228,7 +232,7 @@ def pipeline_setup(food_system, params):
     #                         "items":[2731, 2732]})
 
     food_system.add_node(scale_impact,
-                            {"items":[2731, 2732, 2733, 2735, 2948, 2740, 2743],
+                            {"items":("Item_origin","Animal Products"),
                             "scale_factor":params["manure_ghg_factor"]*params["manure_management"]/100})
 
     # food_system.add_node(scale_production,
@@ -236,7 +240,7 @@ def pipeline_setup(food_system, params):
     #                         "items":[2731, 2732, 2733, 2735, 2948, 2740, 2743]})
 
     food_system.add_node(scale_impact,
-                            {"items":[2731, 2732],
+                            {"items":("Item_origin","Animal Products"),
                             "scale_factor":params["breeding_ghg_factor"]*params["animal_breeding"]/100})
 
     # food_system.add_node(scale_production,
@@ -313,6 +317,8 @@ def pipeline_setup(food_system, params):
                                           "Managed arable",
                                           "Managed pasture",
                                           "Mixed farming",
+                                          "Bioenergy crops (arable)",
+                                          "Bioenergy crops (pasture)"
                                           ],
                             "seq":[params["bdleaf_seq_ha_yr"],
                                    params["conif_seq_ha_yr"],
@@ -323,11 +329,22 @@ def pipeline_setup(food_system, params):
                                    params["managed_arable_seq_ha_yr"],
                                    params["managed_pasture_seq_ha_yr"],
                                    params["mixed_farming_seq_ha_yr"],
+                                   params["beccs_crops_arable_seq_ha_yr"],
+                                   params["beccs_crops_pasture_seq_ha_yr"]
                                    ]})
     # Compute emissions
     food_system.add_node(compute_emissions)
 
     # Compute additional metrics 
     food_system.add_node(compute_metrics)
+
+    # Generate pathway URL
+    food_system.add_node(generate_API_url,
+                         {"keys":[
+                             "ruminant",
+                             "pig_poultry",
+                             "fish_seafood",
+                             ]}
+    )
 
     return food_system

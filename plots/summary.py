@@ -24,8 +24,10 @@ def map_max(map, dim):
 
 def plot_summary(datablock, background_color):
 
-    reference_emissions_baseline = 94.78
-    reference_emissions_baseline_agriculture = 53.69
+
+    reference_emissions_baseline = 70.16
+    reference_emissions_baseline_agriculture = 40.71
+
 
     if not st.session_state["embedding"]:
         st.markdown("# Future Food Calculator - The UK in 2050")
@@ -58,7 +60,7 @@ def plot_summary(datablock, background_color):
             st.markdown('''**UK Emissions balance**''')
                 
             if st.session_state["show_afolu_only"]:
-                reference_emissions_baseline = 31.61
+                reference_emissions_baseline = 12.96
                 emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
 
             c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,

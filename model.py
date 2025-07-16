@@ -72,13 +72,16 @@ def project_future(datablock, yield_change=None):
 
     # Emissions per gram of food also remain constant
     g_co2e_g = datablock["impact"]["gco2e/gfood"]
+    g_co2e_g_land = datablock["impact"]["gco2e/gfood_land"]
     g_co2e_g = g_co2e_g.fbs.add_years(years, "constant")
+    g_co2e_g_land = g_co2e_g_land.fbs.add_years(years, "constant")
 
     datablock["food"]["g/cap/day"] = g_cap_day
     datablock["food"]["g_prot/cap/day"] = g_prot_cap_day
     datablock["food"]["g_fat/cap/day"] = g_fat_cap_day
     datablock["food"]["kCal/cap/day"] = kcal_cap_day
     datablock["impact"]["gco2e/gfood"] = g_co2e_g
+    datablock["impact"]["gco2e/gfood_land"] = g_co2e_g_land
     datablock["impact"]["baseline"] = copy.deepcopy(datablock["impact"]["gco2e/gfood"])
 
     datablock["food"]["baseline_projected"] = copy.deepcopy(datablock["food"]["g/cap/day"])
@@ -581,11 +584,15 @@ def compute_emissions(datablock):
     pop_world = pop.sel(Region = 826)
 
     # Compute emissions per capita per day
-    co2e_cap_day = datablock["food"]["g/cap/day"] * datablock["impact"]["gco2e/gfood"]
+    co2e_cap_day_ag = datablock["food"]["g/cap/day"] * datablock["impact"]["gco2e/gfood"]
+    co2e_cap_day_land = datablock["food"]["g/cap/day"] * datablock["impact"]["gco2e/gfood_land"]
 
     # Compute emissions per year
-    datablock["food"]["g_co2e/cap/day"] = co2e_cap_day
-    datablock["impact"]["g_co2e/year"] = co2e_cap_day * pop_world * 365.25
+    datablock["food"]["g_co2e/cap/day"] = co2e_cap_day_ag
+    datablock["food"]["g_co2e/cap/day_land"] = co2e_cap_day_land
+
+    datablock["impact"]["g_co2e/year"] = co2e_cap_day_ag * pop_world * 365.25
+    datablock["impact"]["g_co2e/year_land"] = co2e_cap_day_land * pop_world * 365.25
 
     return datablock
 
@@ -888,8 +895,10 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS, biochar):
     # Compute the total area of BECCS land used in hectares, and the total
     # sequestration in Mt CO2e / year
 
-    land_BECCS_area = pctg.sel({"aggregate_class":"BECCS"}).sum().to_numpy()
-    land_BECCS = land_BECCS_area * st.session_state.beccs_crops_seq_ha_yr
+    pasture_BECCS_area = pctg.sel({"aggregate_class":"Bioenergy crops (pasture)"}).sum().to_numpy()
+    arable_BECCS_area = pctg.sel({"aggregate_class":"Bioenergy crops (arable)"}).sum().to_numpy()
+    land_BECCS = pasture_BECCS_area * st.session_state.BECCS_pasture_tco2_ha_yr
+    land_BECCS += arable_BECCS_area * st.session_state.BECCS_arable_tco2_ha_yr
 
     logistic_0_val = logistic_food_supply(food_orig, timescale, 0, 1)
 
@@ -915,34 +924,6 @@ def ccs_model(datablock, waste_BECCS, overseas_BECCS, DACCS, biochar):
         seq_da_in = datablock["impact"]["co2e_sequestration"]
         seq_da = xr.concat([seq_da_in, seq_da], dim="Item")
         datablock["impact"]["co2e_sequestration"] = seq_da
-
-    # Compute the total cost of sequestration in pounds per year
-    cost_BECCS_tCO2e = linear_scale(food_orig.Year.values[0],
-                              2030,
-                              2050,
-                              food_orig.Year.values[-1],
-                              c_init=123,
-                              c_end=93)
-    
-    cost_DACCS_tCO2e = linear_scale(food_orig.Year.values[0],
-                                    2030,
-                                    2050,
-                                    food_orig.Year.values[-1],
-                                    c_init=245,
-                                    c_end=180)
-
-    cost_waste_BECCS = waste_BECCS_seq_array * cost_BECCS_tCO2e
-    cost_overseas_BECCS = overseas_BECCS_seq_array * cost_BECCS_tCO2e
-    cost_land_BECCS = land_BECCS_seq_array * cost_BECCS_tCO2e
-    cost_DACCSS = DACCS_seq_array * cost_DACCS_tCO2e
-
-    cost_CCS_ds = xr.Dataset({"BECCS from waste": cost_waste_BECCS,
-                             "BECCS from overseas biomass": cost_overseas_BECCS,
-                             "BECCS from land": cost_land_BECCS,
-                             "DACCS": cost_DACCSS})
-    
-    cost_CCS_da = cost_CCS_ds.to_array(dim="Item", name="cost")
-    datablock["impact"]["cost"] = cost_CCS_da
 
     return datablock    
 
@@ -1348,7 +1329,6 @@ def production_land_scale(datablock, bdleaf_conif_ratio):
 
     land = datablock["land"]["percentage_land_use"].copy(deep=True)
     obs = datablock["food"]["g/cap/day"].copy(deep=True)
-    # print(obs)
     ref = datablock["food"]["baseline_projected"].copy(deep=True)
 
     # Obtain reference and observed production values
@@ -1662,16 +1642,14 @@ def compute_metrics(datablock):
     for qk, nk in zip(qty_keys, nutrition_keys):
         datablock["food"][qk] = datablock["food"][nk] * datablock["food"]["g/cap/day"]
 
-    print(datablock["food"]["g_prot/cap/day"])
-
     # Emissions balance
     metric_yr = 2050
     reference_emissions_baseline = 94.24
     reference_emissions_baseline_agriculture = 53.69
 
     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
-    emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
-    total_agriculture_emissions = emissions.sum(dim="Item").values/1e6
+    agriculture_emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
+    total_agriculture_emissions = agriculture_emissions.sum(dim="Item").values/1e6
     total_seq = seq_da.sel(Item=["Broadleaf woodland",
                                  "Coniferous woodland",
                                  "New Broadleaf woodland",
@@ -1680,7 +1658,13 @@ def compute_metrics(datablock):
                                  "Managed arable",
                                  "Mixed farming",
                                  "Silvopasture",
-                                 "Agroforestry"]).sum(dim="Item").values/1e6
+                                 "Agroforestry",
+                                 "Bioenergy crops (arable)",
+                                 "Bioenergy crops (pasture)",
+                                 ]).sum(dim="Item").values/1e6
+    
+    land_use_emissions = datablock["impact"]["g_co2e/year_land"]["production"].sel(Year=metric_yr)/1e6
+    total_land_use_emissions = land_use_emissions.sum(dim="Item").values/1e6
     
     total_removals = seq_da.sel(Item=["BECCS from waste",
                                       "BECCS from overseas biomass",
@@ -1693,10 +1677,12 @@ def compute_metrics(datablock):
                             coords={"Sector": list(sector_emissions_dict.keys())})
     
     emissions_balance.loc[{"Sector": "Agriculture"}] = total_agriculture_emissions
-    emissions_balance.loc[{"Sector": "LU sinks"}] = -total_seq
-    emissions_balance.loc[{"Sector": "Removals"}] = -total_removals
+    emissions_balance.loc[{"Sector": "LU sinks"}] -= total_seq
+    emissions_balance.loc[{"Sector": "Removals"}] -= total_removals
 
     emissions_balance.loc[{"Sector": "LU sources"}] -= seq_da.sel(Item=["Restored upland peat", "Restored lowland peat"]).sum(dim="Item").values/1e6
+    emissions_balance.loc[{"Sector": "LU sources"}] += total_land_use_emissions
+
     total_emissions = emissions_balance.sum().values
     
     reducion_emissions_pctg = (total_emissions - reference_emissions_baseline) / reference_emissions_baseline * 100
@@ -1838,6 +1824,14 @@ def compute_metrics(datablock):
                                                "Mixed farming",
                                                "Agroforestry"]).sum().values
     
+    total_agroforestry = totals.sel(aggregate_class="Agroforestry").sum().values
+    total_silvopasture = totals.sel(aggregate_class="Silvopasture").sum().values
+    total_mixed_farming = totals.sel(aggregate_class="Mixed farming").sum().values
+    total_beccs = totals.sel(aggregate_class=["Bioenergy crops (pasture)", "Bioenergy crops (arable)"]).sum().values
+
+    beccs_on_pasture = total_beccs * st.session_state["land_BECCS_pasture"] / (st.session_state["land_BECCS_pasture"] + st.session_state["land_BECCS"])
+    beccs_on_arable = total_beccs * st.session_state["land_BECCS"] / (st.session_state["land_BECCS_pasture"] + st.session_state["land_BECCS"])
+
     baseline_arable = datablock["land"]["baseline"].sel(aggregate_class=["Arable"]).sum().values
 
     new_arable_land_pctg = (total_arable - baseline_arable) / baseline_arable * 100
@@ -1853,31 +1847,38 @@ def compute_metrics(datablock):
     datablock["metrics"]["new_arable_land_pctg"] = new_arable_land_pctg
     datablock["metrics"]["new_pasture_land_pctg"] = new_pasture_land_pctg
 
+    datablock["metrics"]["total_agroforestry"] = total_agroforestry
+    datablock["metrics"]["total_silvopasture"] = total_silvopasture
+    datablock["metrics"]["total_mixed_farming"] = total_mixed_farming
+    datablock["metrics"]["total_beccs"] = total_beccs
+    datablock["metrics"]["beccs_on_pasture"] = beccs_on_pasture
+    datablock["metrics"]["beccs_on_arable"] = beccs_on_arable
+
     # Crop sizes
 
     gcapday = datablock["food"]["g/cap/day"]["production"]
 
-    baseline_potatoes_area_mha = 0.012
+    baseline_potatoes_area_mha = st.session_state["baseline_potato_area"]
     baseline_potato_production = pop_baseline * gcapday.sel(Year=2020, Item=2531).fillna(0).sum().values
     new_potato_production = pop_new * gcapday.sel(Year=metric_yr, Item=2531).fillna(0).sum().values
     new_potato_area = baseline_potatoes_area_mha * new_potato_production / baseline_potato_production
     datablock["metrics"]["new_potato_area"] = new_potato_area
     
 
-    baseline_oilseed_area_mha = 0.418
+    baseline_oilseed_area_mha = st.session_state["baseline_oilseed_area"]
     baseline_oilseed_production = pop_baseline * gcapday.sel(Year=2020, Item=[2570, 2572, 2573, 2575, 2576, 2577, 2578, 2579, 2581, 2582, 2586 ]).fillna(0).sum().values
     new_oilseed_production = pop_new * gcapday.sel(Year=metric_yr, Item=[2570, 2572, 2573, 2575, 2576, 2577, 2578, 2579, 2581, 2582, 2586 ]).fillna(0).sum().values
     new_oilseed_area = baseline_oilseed_area_mha * new_oilseed_production / baseline_oilseed_production
     datablock["metrics"]["new_oilseed_area"] = new_oilseed_area
 
-    baseline_cereal_area_mha = 3.1
+    baseline_cereal_area_mha = st.session_state["baseline_cereal_area"]
     baseline_cereal_production = pop_baseline * gcapday.sel(Year=2020, Item=gcapday.Item_group=="Cereals - Excluding Beer").fillna(0).sum().values
     new_cereal_production = pop_new * gcapday.sel(Year=metric_yr, Item=gcapday.Item_group=="Cereals - Excluding Beer").fillna(0).sum().values
     
     new_cereal_area = baseline_cereal_area_mha * new_cereal_production / baseline_cereal_production
     datablock["metrics"]["new_cereal_area"] = new_cereal_area
     
-    baseline_horticulture_area_mha = 0.145
+    baseline_horticulture_area_mha = st.session_state["baseline_horticulture_area"]
     new_horiticulture_area = baseline_horticulture_area_mha * total_arable / baseline_arable * (1+st.session_state["horticulture"]/100)
     datablock["metrics"]["new_horticulture_area"] = new_horiticulture_area
 
@@ -1922,5 +1923,19 @@ def label_new_forest(datablock):
         land.loc[{"aggregate_class": w_type}] = land_baseline.sel(aggregate_class=w_type).where(new_w_mask, land.sel(aggregate_class=w_type))
 
     datablock["land"]["percentage_land_use"] = land
+
+    return datablock
+
+def generate_API_url(datablock, base_url="https://sarahjp-hack.streamlit.app/?", keys=None):
+    """Generates a URL for the current model run"""
+
+    url = base_url
+
+    if keys is None:
+        keys = []
+    for key in keys:
+        url += f"{key}={datablock['run_parameters'][key]}&"        
+
+    datablock["URL"] = url
 
     return datablock

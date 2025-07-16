@@ -1,73 +1,31 @@
 import streamlit as st
 import gspread
 from google.oauth2 import service_account
-from utils.helper_functions import update_slider, reset_sliders
+from utils.helper_functions import update_slider, reset_sliders, default_widget_values
 import subprocess
 import numpy as np
 
-SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+SCOPES = ['https://spreadsheets.google.com/feeds',
+          'https://www.googleapis.com/auth/drive']
 SERVICE_ACCOUNT_FILE = dict(st.secrets["gspread"]["gs_api_key"])
-APP_BASE_URL = "https://sarahjp-hack.streamlit.app/"
 
 credentials = service_account.Credentials.from_service_account_info(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
-# SUBMISSION_WORKSHEET = "Stakeholder submissions - roadmap workshop Jan 23"
-# SUBMISSION_WORKSHEET = "Stage I submissions"
-# SUBMISSION_WORKSHEET = "submissions_8apr25"
-# SUBMISSION_WORKSHEET = "sens_analysis_8may25"
-SUBMISSION_WORKSHEET = "CB7 figures AFN scenarios"
-SCENARIOS_WORKSHEET = "Scenarios"
+if st.secrets["branch"] == "consultation":
+    APP_BASE_URL = "https://agrifood-consultation.streamlit.app/"
+    SCENARIOS_WORKSHEET = "Scenarios"
 
+elif st.secrets["branch"] == "sarah_jp_hack":
+    APP_BASE_URL = "https://sarahjp-hack.streamlit.app/"
+    SCENARIOS_WORKSHEET = "sarahjp_scenarios"
 
 gc = gspread.authorize(credentials)
 sh = gc.open_by_key("1ZEb7PzEi6aKv303t7ypFriIt89FPzXTySGt_vmY60_Y")
-stage_I_worksheet = sh.worksheet(SUBMISSION_WORKSHEET)
+
 pathways_worksheet = sh.worksheet(SCENARIOS_WORKSHEET)
 enrolments_worksheet = sh.worksheet("Form responses 2")
-
 stage_I_deadline = 'December 31, 2024'
-
-keys=[
-
-    "pop_proj",
-    "yield_proj",
-    "elasticity",
-
-    "ruminant",
-    "dairy",
-    "pig_poultry_eggs",
-    "pulses",
-    "fruit_veg",
-    "cereals",
-    "meat_alternatives",
-    "dairy_alternatives",
-    "waste",
-
-    "foresting_pasture",
-    "bdleaf_conif_ratio", 
-    "land_BECCS",
-    "lowland_peatland",
-    "upland_peatland",
-    "soil_carbon",
-    "mixed_farming",
-    
-    "silvopasture",
-    "stock_density",
-    "methane_inhibitor",
-    "manure_management",
-    "animal_breeding",
-    "fossil_livestock",
-    
-    "agroforestry",
-    "fossil_arable",
-    "nitrogen",
-    "vertical_farming",
-    
-    "waste_BECCS",
-    "overseas_BECCS",
-    "DACCS",
-]
 
 def get_user_list():
     """Get the list of user IDs from the spreadsheet URL"""
@@ -77,130 +35,115 @@ def get_user_list():
     return user_list
 
 @st.dialog("Submit scenario")
-def submit_scenario(user_id, ambition_levels=False, check_users=True, name=None, datablock=None):
+def submit_scenario(name, ambition_levels=False, check_users=True,
+                    datablock=None, user_id=None, worksheet=None,
+                    generate_url=False):
     """Submit the pathway to the Google Sheet.
 
     Parameters:
     ----------
+    name : str
+        The name of the scenario
 
-    user_id : str
-        The user's ID.
-        
     ambition_levels : bool
         Whether to submit the ambition levels stored in the session state, or
         run a test submission with dummy data instead.
 
-    Returns:
-    -------
-        None
+    check_users : bool
+        Whether to check if the user is in the database.
+
+    datablock : dict
+        A dictionary containing additional data to be submitted.
+
+    user_id : str
+        The user's ID.
     """
+
+    ws = sh.worksheet(worksheet)
 
     hash = get_latest_commit_hash()[:7]
 
     if not ambition_levels:
-        row = [user_id, "test"]
-        stage_I_worksheet.append_row(row)
+        row = [name, "test"]
+        ws.append_row(row)
         return
     
     if check_users:
         if user_id not in get_user_list():
             st.error(f'User ID {user_id} not found in database', icon="🚨")
     
-    if name is None:
-        name = " "
-    
+    if name is None or name == "":
+        name = "Anonymous submission"
+
+    if generate_url and datablock is not None:
+        url = build_url()
+        name_to_cell = f'=HYPERLINK("{url}", "{name}")'
     else:
-        row = [name,
+        name_to_cell = name
 
-            st.session_state["pop_proj"],
-            st.session_state["yield_proj"],
-            st.session_state["elasticity"],
+    row = [name_to_cell]
 
-            st.session_state["ruminant"],
-            st.session_state["dairy"],
-            st.session_state["pig_poultry"],
-            st.session_state["eggs"],            
-            st.session_state["pulses"],
-            st.session_state["fruit_veg"],
-            st.session_state["cereals"],
-            st.session_state["meat_alternatives"],
-            st.session_state["dairy_alternatives"],
-            st.session_state["waste"],
-            
-            st.session_state["foresting_pasture"],
-            st.session_state["bdleaf_conif_ratio"],
-            st.session_state["land_BECCS"],
-            st.session_state["land_BECCS_pasture"],
-            st.session_state["lowland_peatland"],
-            st.session_state["upland_peatland"],
-            st.session_state["horticulture"],
-            st.session_state["pulse_production"],
-            st.session_state["mixed_farming"],
+    # Append slider values. Skip the scenario key
+    for key in list(default_widget_values.keys())[1:]:
+        row.append(st.session_state[key])
 
-            st.session_state["silvopasture"],
-            st.session_state["stock_density"],
-            st.session_state["pasture_soil_carbon"],
-            st.session_state["methane_inhibitor"],
-            st.session_state["manure_management"],
-            st.session_state["animal_breeding"],
-            st.session_state["fossil_livestock"],
-            st.session_state["livestock_yield"],
+    # Append hash of the current commit 
+    row.append(hash)        
 
-            st.session_state["agroforestry"],
-            st.session_state["arable_soil_carbon"],
-            st.session_state["fossil_arable"],
-            st.session_state["nitrogen"],
-            st.session_state["vertical_farming"],
+    # Append additional data from the datablock
+    if datablock is not None:
+        extra_values = [datablock["metrics"]["SSR_metric_yr"],
+                        datablock["metrics"]["total_emissions"],
+                        datablock["metrics"]["new_herd"].isel(Year=-1),
+                        datablock["metrics"]["new_dairy_herd"].isel(Year=-1),
+                        datablock["metrics"]["new_dairy_herd_2y"].isel(Year=-1),
 
-            st.session_state["waste_BECCS"],
-            st.session_state["overseas_BECCS"],
-            st.session_state["DACCS"],
-            st.session_state["biochar"],
-            
-            hash
-        ]
+                        datablock["metrics"]["new_beef_herd"].isel(Year=-1),
+                        datablock["metrics"]["new_pig_heads"].isel(Year=-1),
+                        datablock["metrics"]["new_poultry_heads"].isel(Year=-1),
+                        datablock["metrics"]["new_sheep_flock"].isel(Year=-1),
 
-        if datablock is not None:
-            extra_values = [datablock["metrics"]["SSR_metric_yr"],
-                            datablock["metrics"]["total_emissions"],
-                            datablock["metrics"]["new_herd"].isel(Year=-1),
-                            datablock["metrics"]["new_dairy_herd"].isel(Year=-1),
-                            datablock["metrics"]["new_dairy_herd_2y"].isel(Year=-1),
+                        datablock["metrics"]["new_potato_area"].isel(Year=-1),
+                        datablock["metrics"]["new_oilseed_area"].isel(Year=-1),
+                        datablock["metrics"]["new_cereal_area"].isel(Year=-1),
+                        datablock["metrics"]["new_horticulture_area"],
+                        datablock["metrics"]["other_crops_area_mha"].isel(Year=-1),
 
-                            datablock["metrics"]["new_beef_herd"].isel(Year=-1),
-                            datablock["metrics"]["new_pig_heads"].isel(Year=-1),
-                            datablock["metrics"]["new_poultry_heads"].isel(Year=-1),
-                            datablock["metrics"]["new_sheep_flock"].isel(Year=-1),
+                        datablock["metrics"]["reduction_emissions_pctg"],
+                        datablock["metrics"]["new_forest_land"]/1e6,
+                        datablock["metrics"]["forest_sequestration_MtCO2"],
+                        datablock["metrics"]["reduction_emissions_agricultural_pctg"],
+                        datablock["metrics"]["agricultural_emissions"],
+                        datablock["metrics"]["total_removals"],
+                        datablock["metrics"]["total_arable"]/1e6,
+                        datablock["metrics"]["new_arable_land_pctg"],
+                        datablock["metrics"]["total_pasture"]/1e6,                            
+                        datablock["metrics"]["new_pasture_land_pctg"],
+                        0,
+                        datablock["metrics"]["total_agroforestry"]/1e6,
+                        datablock["metrics"]["total_silvopasture"]/1e6,
+                        datablock["metrics"]["total_mixed_farming"]/1e6,
+                        datablock["metrics"]["beccs_on_arable"]/1e6,
+                        datablock["metrics"]["beccs_on_pasture"]/1e6,
+                        datablock["metrics"]["total_beccs"]/1e6,
+                        ]
+        
+        if np.isscalar(extra_values):
+            extra_values = [extra_values]
+        values_formatted = ['{0:.3f}'.format(val) for val in extra_values]
+        row.extend(values_formatted)
 
-                            datablock["metrics"]["new_potato_area"].isel(Year=-1),
-                            datablock["metrics"]["new_oilseed_area"].isel(Year=-1),
-                            datablock["metrics"]["new_cereal_area"].isel(Year=-1),
-                            datablock["metrics"]["new_horticulture_area"],
-                            datablock["metrics"]["other_crops_area_mha"].isel(Year=-1),
+    with st.spinner("Submitting scenario..."):
+        ws.append_row(row)
 
-                            datablock["metrics"]["reduction_emissions_pctg"],
-                            datablock["metrics"]["new_forest_land"]/1e6,
-                            datablock["metrics"]["forest_sequestration_MtCO2"],
-                            datablock["metrics"]["reduction_emissions_agricultural_pctg"],
-                            datablock["metrics"]["agricultural_emissions"],
-                            datablock["metrics"]["total_removals"],
-                            datablock["metrics"]["total_arable"]/1e6,
-                            datablock["metrics"]["new_arable_land_pctg"],
-                            datablock["metrics"]["total_pasture"]/1e6,                            
-                            datablock["metrics"]["new_pasture_land_pctg"]]
-            
-            for ex in extra_values:
-                print(ex)
+        last_row = len(ws.col_values(1))
+        ws.update_cell(last_row, 1, name_to_cell)
 
-            if np.isscalar(extra_values):
-                extra_values = [extra_values]
-            values_formatted = ['{0:.3f}'.format(val) for val in extra_values]
-            row.extend(values_formatted)
-
-        stage_I_worksheet.append_row(row)
-        st.success(f'Succesfully submitted scenario {name}', icon="✅")
-        st.write("""If you want to modify your submission, please use the same
-                 scenario name as before.""")
+    st.success(f'Succesfully submitted scenario {name}', icon="✅")
+    st.write("""Thank you four submission! If you would like to share your
+             scenario with others, please copy the URL below.""")
+    if generate_url:
+        st.code(url, wrap_lines=True, language=None)
 
 @st.cache_data(ttl=60*60*24)
 def get_pathways():
@@ -224,7 +167,10 @@ def get_pathway_data(pathway_name):
     pathway_values = pathway_values[1:]
     
     # Convert string values to numbers, replacing empty strings with 0
-    pathway_values = [str(x) if any(c.isalpha() for c in str(x)) else float(x) if x != "" else 0 for x in pathway_values]
+    pathway_values = [str(x) if any(c.isalpha() for c in str(x)) 
+                      else float(x) if x != ""
+                      else 0
+                      for x in pathway_values]
 
     # Get keys
     keys = pathways_worksheet.row_values(3)
@@ -266,11 +212,23 @@ if __name__ == "__main__":
 
     print(get_user_list())
 
-def build_url():
+def build_url(base_url=APP_BASE_URL):
+    """Builds a URL to access the current pathway."""
 
-    url = APP_BASE_URL
+    url = base_url
+    url += "?embedding=true&"
 
-    for key in keys:
+    # Skip first key, which is the scenario name
+    for key in list(default_widget_values.keys())[1:]:
         url += f"{key}={st.session_state[key]}&"
 
     return url
+
+@st.cache_data(ttl=60*60*24)
+def get_worksheet_list():
+    """Get the list of worksheets in the spreadsheet."""
+
+    ws_list = sh.worksheets()
+    ws_list_name = [ws.title for ws in ws_list]
+    return ws_list_name
+
