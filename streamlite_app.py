@@ -67,34 +67,40 @@ timer.ping("Page setup")
 
 with st.sidebar:
 
-    st.image("https://futurefoodcalculator.org/assets/global/Logos/FutureFoodCalculator_logo_v2.svg")
+    st.logo("https://futurefoodcalculator.org/assets/global/Logos/FutureFoodCalculator_logo_v2.svg", size="large")
 
 # ------------------------
 #        Sidebar
 # ------------------------
 
-    col1, col2 = st.columns([7.5,2.5])
+    col1, col2 = st.columns([8,2])
 
-    if "scenario" in st.query_params:
-        scenario = st.query_params["scenario"]
-        call_scenarios(scenario)
-    
-        st.selectbox("Scenario",
-                     get_pathways(),
-                     index=None,
-                     placeholder=scenario,
-                     on_change=call_scenarios,
-                     key="scenario",
-                     label_visibility="collapsed")
-    
-    else:
-        st.selectbox("Scenario",
-                     get_pathways(),
-                     index=None,
-                     placeholder="Select a scenario",
-                     on_change=call_scenarios,
-                     key="scenario",
-                     label_visibility="collapsed")
+    with col1:
+        if "scenario" in st.query_params:
+            scenario = st.query_params["scenario"]
+            call_scenarios(scenario)
+        
+            st.selectbox("Scenario",
+                        get_pathways(),
+                        index=None,
+                        placeholder=scenario,
+                        on_change=call_scenarios,
+                        key="scenario",
+                        label_visibility="collapsed")
+        
+        else:
+            st.selectbox("Scenario",
+                        get_pathways(),
+                        index=None,
+                        placeholder="Select a scenario",
+                        on_change=call_scenarios,
+                        key="scenario",
+                        label_visibility="collapsed")
+
+    if st.secrets["branch"] == "sarah_jp_hack":
+        with col2:
+            if st.button(":material/directory_sync:", type="secondary"):
+                get_pathways.clear()
 
     # Read query parameters and extract those that are slider keys (except first one)
     query_param_keys = np.intersect1d(list(st.query_params.keys()), list(default_widget_values.keys())[1:])

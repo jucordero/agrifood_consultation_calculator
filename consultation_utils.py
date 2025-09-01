@@ -4,6 +4,7 @@ from google.oauth2 import service_account
 from utils.helper_functions import update_slider, reset_sliders, default_widget_values
 import subprocess
 import numpy as np
+import xarray as xr
 
 SCOPES = ['https://spreadsheets.google.com/feeds',
           'https://www.googleapis.com/auth/drive']
@@ -120,6 +121,7 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
                         datablock["metrics"]["total_pasture"]/1e6,                            
                         datablock["metrics"]["new_pasture_land_pctg"],
                         0,
+                        datablock["metrics"]["total_restored_peatland"]/1e6,
                         datablock["metrics"]["total_agroforestry"]/1e6,
                         datablock["metrics"]["total_silvopasture"]/1e6,
                         datablock["metrics"]["total_mixed_farming"]/1e6,
@@ -130,8 +132,11 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
         
         if np.isscalar(extra_values):
             extra_values = [extra_values]
-        values_formatted = ['{0:.3f}'.format(val) for val in extra_values]
-        row.extend(values_formatted)
+        for i, val in enumerate(extra_values):
+            if isinstance(val, xr.DataArray):
+                extra_values[i] = val.to_numpy().item()
+        # values_formatted = ['{0:.3f}'.format(val) for val in extra_values]
+        row.extend(extra_values)
 
     with st.spinner("Submitting scenario..."):
         ws.append_row(row)

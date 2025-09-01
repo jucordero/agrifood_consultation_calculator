@@ -1644,8 +1644,8 @@ def compute_metrics(datablock):
 
     # Emissions balance
     metric_yr = 2050
-    reference_emissions_baseline = 94.24
-    reference_emissions_baseline_agriculture = 53.69
+    reference_emissions_baseline = st.secrets["baseline_total_emissions"]
+    reference_emissions_baseline_agriculture = st.secrets["baseline_agricultural_emissions"]
 
     seq_da = datablock["impact"]["co2e_sequestration"].sel(Year=metric_yr)
     agriculture_emissions = datablock["impact"]["g_co2e/year"]["production"].sel(Year=metric_yr)/1e6
@@ -1837,6 +1837,9 @@ def compute_metrics(datablock):
     new_arable_land_pctg = (total_arable - baseline_arable) / baseline_arable * 100
     new_pasture_land_pctg = (total_pasture - baseline_pasture) / baseline_pasture * 100
 
+    total_restored_peatland = totals.sel(aggregate_class=["Restored upland peat", "Restored lowland peat"]).sum().values
+
+    datablock["metrics"]["total_restored_peatland"] = total_restored_peatland
     datablock["metrics"]["total_pasture"] = total_pasture
     datablock["metrics"]["total_forest"] = total_forest
     datablock["metrics"]["total_arable"] = total_arable
