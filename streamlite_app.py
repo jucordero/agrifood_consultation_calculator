@@ -3,14 +3,28 @@ import pandas as pd
 
 from utils.altair_plots import *
 from utils.helper_functions import *
-from utils.custom_widgets import text_plus_slider, text_plus_segment, selectbox_plus_icon
+from utils.custom_widgets import text_plus_slider, selectbox_plus_icon
 from utils.help_dialogs import *
 
 from agrifoodpy.pipeline import Pipeline
-from datablock_setup import datablock_setup
-from pipeline_setup import pipeline_setup
 
-from glossary import *
+from future_food.datablock_setup import datablock_setup
+from future_food.pipeline_builder import pipeline_setup
+
+@st.cache_data(ttl=60*60*24)
+def cached_datablock_setup(
+    AES_KEY,
+    AES_IV,
+    advanced_settings
+    ):
+
+    print("This function is being called again!")
+
+    return datablock_setup(
+        AES_KEY,
+        AES_IV,
+        advanced_settings)
+
 from consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
 
 timer = Timer()
@@ -266,16 +280,33 @@ with st.sidebar:
                             key="elasticity",
                             help_dialog=trade_help)
         
+        advanced_settings = read_advanced_settings()
+        advanced_settings["pop_proj"] = st.session_state["pop_proj"]
+        advanced_settings["yield_proj"] = st.session_state["yield_proj"]
+        advanced_settings["elasticity"] = st.session_state["elasticity"]
+        advanced_settings["baseline_total_emissions"] = st.secrets["baseline_total_emissions"]
+        advanced_settings["baseline_agricultural_emissions"] = st.secrets["baseline_agricultural_emissions"]
+        advanced_settings["ssr_metric"] = st.session_state["ssr_metric"]
+
     timer.ping("Sidebar setup")
 
 # ----------------------------------------
 #                  Main
-# ----------------------------------------
+# ----------------------------------------º
 
 run_params = set_run_params_dict()
-# print(run_params)
-food_system = Pipeline(datablock_setup(pop_projection))
-food_system = pipeline_setup(food_system, run_params)
+
+food_system = Pipeline(cached_datablock_setup(
+    st.secrets["AES_KEY"],
+    st.secrets["AES_IV"],
+    advanced_settings))
+
+food_system = pipeline_setup(
+    food_system,
+    run_params,
+    advanced_settings,
+    )
+
 food_system.run()
 datablock_result = food_system.datablock
 
