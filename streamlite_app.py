@@ -79,7 +79,7 @@ timer.ping("Page setup")
 
 with st.sidebar:
 
-    st.logo("https://futurefoodcalculator.org/assets/global/Logos/FutureFoodCalculator_logo_v2.svg", size="large")
+    st.logo("https://futurefoodcalculator.org/assets/global/ffc_logo.svg", size="large")
 
 # ------------------------
 #        Sidebar
@@ -284,6 +284,7 @@ with st.sidebar:
         advanced_settings["elasticity"] = st.session_state["elasticity"]
         advanced_settings["baseline_total_emissions"] = st.secrets["baseline_total_emissions"]
         advanced_settings["baseline_agricultural_emissions"] = st.secrets["baseline_agricultural_emissions"]
+        advanced_settings["baseline_afolu_emissions"] = st.secrets["baseline_afolu_emissions"]
         advanced_settings["ssr_metric"] = st.session_state["ssr_metric"]
 
     timer.ping("Sidebar setup")
