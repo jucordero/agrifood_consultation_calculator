@@ -1,7 +1,7 @@
 import streamlit as st
 import gspread
 from google.oauth2 import service_account
-from utils.helper_functions import update_slider, reset_sliders, default_widget_values
+from utils.helper_functions import update_slider, default_widget_values
 import subprocess
 import numpy as np
 import xarray as xr

@@ -18,14 +18,12 @@ def cached_datablock_setup(
     advanced_settings
     ):
 
-    print("This function is being called again!")
-
     return datablock_setup(
         AES_KEY,
         AES_IV,
         advanced_settings)
 
-from consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
+from utils.consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
 
 timer = Timer()
 
