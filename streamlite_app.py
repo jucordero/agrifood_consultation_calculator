@@ -5,25 +5,11 @@ from utils.altair_plots import *
 from utils.helper_functions import *
 from utils.custom_widgets import text_plus_slider, selectbox_plus_icon
 from utils.help_dialogs import *
+from utils.consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
 
 from agrifoodpy.pipeline import Pipeline
 
-from future_food.datablock_setup import datablock_setup
 from future_food.pipeline_builder import pipeline_setup
-
-@st.cache_data(ttl=60*60*24)
-def cached_datablock_setup(
-    AES_KEY,
-    AES_IV,
-    advanced_settings
-    ):
-
-    return datablock_setup(
-        AES_KEY,
-        AES_IV,
-        advanced_settings)
-
-from utils.consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
 
 timer = Timer()
 
@@ -64,7 +50,7 @@ if "embedding" in st.query_params:
 st.set_page_config(layout='wide',
                    initial_sidebar_state='expanded',
                    page_title="Future Food Calculator",
-                   page_icon="images/fof_icon.png")
+                   page_icon="images/ffc_favicon.png")
 
 set_advanced_settings()
 
@@ -79,7 +65,8 @@ timer.ping("Page setup")
 
 with st.sidebar:
 
-    st.logo("https://futurefoodcalculator.org/assets/global/ffc_logo.svg", size="large")
+    # st.logo("https://futurefoodcalculator.org/assets/global/ffc_logo.svg", size="large")
+    st.image("https://futurefoodcalculator.org/assets/global/ffc_logo.svg", use_container_width=True)
 
 # ------------------------
 #        Sidebar
@@ -88,6 +75,7 @@ with st.sidebar:
     col1, col2 = st.columns([8,2])
 
     with col1:
+        # If value in query parameters, call corresponding scenario
         if "scenario" in st.query_params:
             scenario = st.query_params["scenario"]
             call_scenarios(scenario)
@@ -109,6 +97,7 @@ with st.sidebar:
                         key="scenario",
                         label_visibility="collapsed")
 
+    # Only on test branch: Add button to clear pathways cache and reload data
     if st.secrets["branch"] == "sarah_jp_hack":
         with col2:
             if st.button(":material/directory_sync:", type="secondary"):
@@ -319,6 +308,7 @@ extra_values = plots(datablock_result)
 
 timer.ping("Plots executed")
 
+# Fragment modal menu to confirm scenario submissions
 @st.fragment
 def submit_menu():
     st.markdown("""<div style="text-align: justify;">
@@ -326,19 +316,39 @@ def submit_menu():
         intervention, enter your scenario name in the field below and click
         the "Submit" button.</div>""", unsafe_allow_html=True)
     
-    submission_name = st.text_input("Enter the name of your submission", placeholder="Enter the name of your submission", label_visibility="hidden", key="submission_name")
+    submission_name = st.text_input(
+        "Enter the name of your submission",
+        placeholder="Enter the name of your submission",
+        label_visibility="hidden",
+        key="submission_name")
     
-    allow_to_public_database = st.checkbox("Allow your pathway to be publicly available in the submissions database", value=True)
+    allow_to_public_database = st.checkbox(
+        "Allow your pathway to be publicly available our submissions database",
+        value=True)
     
     if st.secrets["branch"] == "sarah_jp_hack":
-        worksheet = st.selectbox("Select the worksheet to upload your submission to", options=get_worksheet_list(), key="submission_worksheet")
+        worksheet = st.selectbox(
+            "Select the worksheet to upload your submission to",
+            options=get_worksheet_list(),
+            key="submission_worksheet"
+            )
+        
     elif st.secrets["branch"] == "consultation":
         worksheet = "Main branch submissions"
     
-    st.caption("""By clicking ‘Submit’ you are agreeing to our [Data Protection Policy](https://docs.google.com/document/d/1E24m5bvY2g-LbHpyN2Y44A_GzYtMmNUKRFJ_Wc-JTP0/edit?tab=t.0)""")
+    st.caption(f"""By clicking ‘Submit’ you are agreeing to our
+               [Data Protection Policy]({st.secrets["GDPR_compliance_url"]})""")
+    
     submit_state = st.button("Submit", key="submit_scenario")
     if submit_state:
-        submit_scenario(name=submission_name, ambition_levels=True, check_users=st.session_state.check_ID, datablock=datablock_result, worksheet=worksheet, generate_url=True)
+        submit_scenario(
+            name=submission_name,
+            ambition_levels=True,
+            check_users=st.session_state.check_ID,
+            datablock=datablock_result,
+            worksheet=worksheet,
+            generate_url=True
+            )
 
 with st.sidebar:
     with st.expander("**:arrow_right: Submit slider positions**"):
@@ -350,17 +360,19 @@ with st.sidebar:
         st.button("Reset all sliders", on_click=reset_sliders, key='reset_all')
 
     with cols_buttons[1]:
-        if st.button("Clear cache", help="Clear the cache to read advanced settings and scenarios list"):
+        if st.button(
+            "Clear cache",
+            help="Clear the cache to read advanced settings and scenarios list"):
             st.cache_data.clear()
             st.rerun()
     
     st.caption('''--- Developed with funding from [FixOurFood](https://fixourfood.org/).''')
     
-    st.caption('''--- We would be grateful for your feedback - 
-               [Fill in our Feedback Form](https://docs.google.com/forms/d/e/1FAIpQLSdnBp2Rmr-1fFYRQvEVcLLKchdlXZG4GakTBK5yy6jozUt8NQ/viewform?usp=sf_link).''')
+    st.caption(f'''--- We would be grateful for your feedback - 
+               [Fill in our Feedback Form]({st.secrets["feedback_form_url"]}).''')
     
-    st.caption('''--- For a list of references to the datasets used, please
-                visit our [reference document](https://docs.google.com/document/d/1A2J4BYIuXMgrj9tuLtIon8oJTuR1puK91bbUYCI8kHY/).''')
+    st.caption(f'''--- For a list of references to the datasets used, please
+                visit our [reference document]({st.secrets["modelling_doc_url"]}).''')
     
     if st.button("Help"):
         first_run_dialog()

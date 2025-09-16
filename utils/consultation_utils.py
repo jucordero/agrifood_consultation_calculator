@@ -22,12 +22,12 @@ elif st.secrets["branch"] == "sarah_jp_hack":
     SCENARIOS_WORKSHEET = "sarahjp_scenarios"
 
 gc = gspread.authorize(credentials)
-sh = gc.open_by_key("1ZEb7PzEi6aKv303t7ypFriIt89FPzXTySGt_vmY60_Y")
+sh = gc.open_by_key(st.secrets["scenarios_worksheet_key"])
 
 pathways_worksheet = sh.worksheet(SCENARIOS_WORKSHEET)
 enrolments_worksheet = sh.worksheet("Form responses 2")
-stage_I_deadline = 'December 31, 2024'
 
+@st.cache_data(ttl=60*60*24)
 def get_user_list():
     """Get the list of user IDs from the spreadsheet URL"""
 
@@ -36,28 +36,36 @@ def get_user_list():
     return user_list
 
 @st.dialog("Submit scenario")
-def submit_scenario(name, ambition_levels=False, check_users=True,
-                    datablock=None, user_id=None, worksheet=None,
-                    generate_url=False):
-    """Submit the pathway to the Google Sheet.
+def submit_scenario(
+    name,
+    ambition_levels=False,
+    check_users=True,
+    datablock=None,
+    user_id=None,
+    worksheet=None,
+    generate_url=False
+    ):
+    """Submit a pathway to the scenarios Google Sheet.
 
     Parameters:
     ----------
     name : str
         The name of the scenario
-
     ambition_levels : bool
         Whether to submit the ambition levels stored in the session state, or
         run a test submission with dummy data instead.
-
     check_users : bool
-        Whether to check if the user is in the database.
-
+        Whether to check if the user is in the database before allowing a
+        submissions
     datablock : dict
         A dictionary containing additional data to be submitted.
-
     user_id : str
-        The user's ID.
+        The user's ID to be checked in the users database
+    worksheet : str
+        Name of the worksheet to submit scenarios to.
+    generate_url : bool
+        Whether to print a code box with the submissions URL in the confirmation
+        modal.
     """
 
     ws = sh.worksheet(worksheet)
@@ -93,42 +101,40 @@ def submit_scenario(name, ambition_levels=False, check_users=True,
 
     # Append additional data from the datablock
     if datablock is not None:
-        extra_values = [datablock["metrics"]["SSR_metric_yr"],
-                        datablock["metrics"]["total_emissions"],
-                        datablock["metrics"]["new_herd"].isel(Year=-1),
-                        datablock["metrics"]["new_dairy_herd"].isel(Year=-1),
-                        datablock["metrics"]["new_dairy_herd_2y"].isel(Year=-1),
-
-                        datablock["metrics"]["new_beef_herd"].isel(Year=-1),
-                        datablock["metrics"]["new_pig_heads"].isel(Year=-1),
-                        datablock["metrics"]["new_poultry_heads"].isel(Year=-1),
-                        datablock["metrics"]["new_sheep_flock"].isel(Year=-1),
-
-                        datablock["metrics"]["new_potato_area"].isel(Year=-1),
-                        datablock["metrics"]["new_oilseed_area"].isel(Year=-1),
-                        datablock["metrics"]["new_cereal_area"].isel(Year=-1),
-                        datablock["metrics"]["new_horticulture_area"],
-                        datablock["metrics"]["other_crops_area_mha"].isel(Year=-1),
-
-                        datablock["metrics"]["reduction_emissions_pctg"],
-                        datablock["metrics"]["new_forest_land"]/1e6,
-                        datablock["metrics"]["forest_sequestration_MtCO2"],
-                        datablock["metrics"]["reduction_emissions_agricultural_pctg"],
-                        datablock["metrics"]["agricultural_emissions"],
-                        datablock["metrics"]["total_removals"],
-                        datablock["metrics"]["total_arable"]/1e6,
-                        datablock["metrics"]["new_arable_land_pctg"],
-                        datablock["metrics"]["total_pasture"]/1e6,                            
-                        datablock["metrics"]["new_pasture_land_pctg"],
-                        0,
-                        datablock["metrics"]["total_restored_peatland"]/1e6,
-                        datablock["metrics"]["total_agroforestry"]/1e6,
-                        datablock["metrics"]["total_silvopasture"]/1e6,
-                        datablock["metrics"]["total_mixed_farming"]/1e6,
-                        datablock["metrics"]["beccs_on_arable"]/1e6,
-                        datablock["metrics"]["beccs_on_pasture"]/1e6,
-                        datablock["metrics"]["total_beccs"]/1e6,
-                        ]
+        extra_values = [
+            datablock["metrics"]["SSR_metric_yr"],
+            datablock["metrics"]["total_emissions"],
+            datablock["metrics"]["new_herd"].isel(Year=-1),
+            datablock["metrics"]["new_dairy_herd"].isel(Year=-1),
+            datablock["metrics"]["new_dairy_herd_2y"].isel(Year=-1),
+            datablock["metrics"]["new_beef_herd"].isel(Year=-1),
+            datablock["metrics"]["new_pig_heads"].isel(Year=-1),
+            datablock["metrics"]["new_poultry_heads"].isel(Year=-1),
+            datablock["metrics"]["new_sheep_flock"].isel(Year=-1),
+            datablock["metrics"]["new_potato_area"].isel(Year=-1),
+            datablock["metrics"]["new_oilseed_area"].isel(Year=-1),
+            datablock["metrics"]["new_cereal_area"].isel(Year=-1),
+            datablock["metrics"]["new_horticulture_area"],
+            datablock["metrics"]["other_crops_area_mha"].isel(Year=-1),
+            datablock["metrics"]["reduction_emissions_pctg"],
+            datablock["metrics"]["new_forest_land"]/1e6,
+            datablock["metrics"]["forest_sequestration_MtCO2"],
+            datablock["metrics"]["reduction_emissions_agricultural_pctg"],
+            datablock["metrics"]["agricultural_emissions"],
+            datablock["metrics"]["total_removals"],
+            datablock["metrics"]["total_arable"]/1e6,
+            datablock["metrics"]["new_arable_land_pctg"],
+            datablock["metrics"]["total_pasture"]/1e6,                            
+            datablock["metrics"]["new_pasture_land_pctg"],
+            0,
+            datablock["metrics"]["total_restored_peatland"]/1e6,
+            datablock["metrics"]["total_agroforestry"]/1e6,
+            datablock["metrics"]["total_silvopasture"]/1e6,
+            datablock["metrics"]["total_mixed_farming"]/1e6,
+            datablock["metrics"]["beccs_on_arable"]/1e6,
+            datablock["metrics"]["beccs_on_pasture"]/1e6,
+            datablock["metrics"]["total_beccs"]/1e6,
+            ]
         
         if np.isscalar(extra_values):
             extra_values = [extra_values]
@@ -188,6 +194,9 @@ def get_pathway_data(pathway_name):
 def call_scenarios(scenario=None):
     """Call the scenarios from the Google Sheet"""
 
+    # Clear query parameters
+    st.query_params.clear()
+
     if scenario is None:
         scenario = st.session_state["scenario"]
         if scenario is None:
@@ -236,4 +245,3 @@ def get_worksheet_list():
     ws_list = sh.worksheets()
     ws_list_name = [ws.title for ws in ws_list]
     return ws_list_name
-
