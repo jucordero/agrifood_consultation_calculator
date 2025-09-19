@@ -51,11 +51,17 @@ def text_plus_slider(label,
                                     key=key,
                                     label_visibility='collapsed',
                                     format=str_format + suffix)
-            
-        with col3:
+        @st.fragment
+        def help_button():
             if st.button(":material/help:", key="help_icon_"+key, type="tertiary"):
                 if help_dialog is not None:
                     help_dialog()
+
+        with col3:
+            # if st.button(":material/help:", key="help_icon_"+key, type="tertiary"):
+            #     if help_dialog is not None:
+            #         help_dialog()
+            help_button()
 
     return slider_value
 
