@@ -123,8 +123,8 @@ with st.sidebar:
         text_plus_slider("Pig, poultry", "pig_poultry",
                          help_dialog=pig_poultry_help)
         
-        text_plus_slider("Fish, seafood", "fish_seafood",
-                         help_dialog=fish_seafood_help)
+        # text_plus_slider("Fish, seafood", "fish_seafood",
+        #                  help_dialog=fish_seafood_help)
 
         text_plus_slider("Dairy", "dairy",
                          help_dialog=dairy_help)
@@ -164,16 +164,14 @@ with st.sidebar:
                          help_dialog=beccs_help)
 
         text_plus_slider("Lowland peat", "lowland_peatland", min_value=0,
-                         help_dialog=waste_help)
+                         help_dialog=peatland_restoration_help)
         
         text_plus_slider("Upland peat", "upland_peatland", min_value=0,
                          help_dialog=peatland_restoration_help)
 
-        text_plus_slider("Horticulture", "horticulture", min_value=-100, max_value=500,
-                         help_dialog=waste_help)
+        text_plus_slider("Horticulture", "horticulture", min_value=-100, max_value=500)
         
-        text_plus_slider("Pulse production", "pulse_production", min_value=-100, max_value=500,
-                         help_dialog=peatland_restoration_help)
+        text_plus_slider("Pulse production", "pulse_production", min_value=-100, max_value=500)
 
         text_plus_slider("Mixed farming", "mixed_farming", min_value=0,
                          help_dialog=mixed_farming_help)
@@ -192,16 +190,16 @@ with st.sidebar:
                           help_dialog=soil_management_help)
 
         text_plus_slider("Methane inhibitors", "methane_inhibitor", min_value=0, max_value=100,
-                         help_dialog=peatland_restoration_help)
+                         help_dialog=methane_inhibitor_help)
         
         text_plus_slider("Manure management", "manure_management", min_value=0, max_value=100,
-                        help_dialog=peatland_restoration_help)
+                        help_dialog=manure_management_help)
         
         text_plus_slider("Animal breeding", "animal_breeding", min_value=0, max_value=100,
-                        help_dialog=peatland_restoration_help)
+                        help_dialog=breeding_help)
         
         text_plus_slider("Fossil fuel use", "fossil_livestock", min_value=0, max_value=100,
-                     help_dialog=peatland_restoration_help)
+                     help_dialog=fossil_livestock_help)
         
         text_plus_slider("Livestock productivity", "livestock_yield", min_value=50, value=100, max_value=150, sign=False)
 
@@ -219,17 +217,17 @@ with st.sidebar:
                             help_dialog=urban_help)
 
         text_plus_slider("Fossil fuel use", "fossil_arable", min_value=0, max_value=100,
-                        help_dialog=peatland_restoration_help)
+                        help_dialog=fossil_arable_help)
         
         text_plus_slider("Nitrogen efficiency", "nitrogen", min_value=0, max_value=100,
-                     help_dialog=peatland_restoration_help)
+                     help_dialog=nitrogen_help)
 
     # Technology and innovation
 
     with st.expander("**:gear: Technology and innovation**"):
         
         text_plus_slider("Waste BECCS", "waste_BECCS", min_value=0,
-                         help_dialog=waste_help, sign=False, percentage=False, 
+                         help_dialog=beccs_waste_help, sign=False, percentage=False, 
                          suffix=" Mt CO2e/yr")
                         
         text_plus_slider("Overseas BECCS", "overseas_BECCS", min_value=0,

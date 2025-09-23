@@ -9,6 +9,10 @@ from .annual_quantities import plot_annual_quantities
 from .per_capita import plot_per_capita
 from .land_use import plot_land_use
 from .self_sufficiency import plot_self_sufficiency
+from .paper_plots import paper_plots
+
+if st.secrets["branch"] == "sarah_jp_hack":
+    option_list.append("Paper plots")
 
 @st.fragment()
 def plots(datablock):
@@ -45,5 +49,8 @@ def plots(datablock):
     # Various land plots, including Land use and ALC
     elif plot_key == "Land":
         plot_land_use(datablock, background_color)
+
+    elif plot_key == "Paper plots":
+        paper_plots(datablock)
 
     st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
