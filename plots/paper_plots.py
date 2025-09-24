@@ -11,8 +11,8 @@ def paper_plots(datablock):
     if (st.button("Update figure captions")):
         get_figure_captions.clear()
 
-    figs = []
     captions = get_figure_captions()
+    figs = []
 
     # ---------
     # Figure 1
@@ -147,9 +147,13 @@ def paper_plots(datablock):
     
     cols = st.columns((1,3,1))
 
-
+    while len(figs) < len(captions):
+        figs.append(None)
     with cols[1]:
         for fig_id, (f, capt) in enumerate(zip(figs, captions)):
             with st.expander(f"Figure {fig_id+1}"):
-                st.altair_chart(f, use_container_width=True)
+                if f is None:
+                    st.write("In preparation")
+                else:
+                    st.altair_chart(f, use_container_width=True)
                 st.caption(capt)
