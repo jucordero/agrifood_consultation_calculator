@@ -123,8 +123,8 @@ with st.sidebar:
         text_plus_slider("Pig, poultry", "pig_poultry",
                          help_dialog=pig_poultry_help)
         
-        # text_plus_slider("Fish, seafood", "fish_seafood",
-        #                  help_dialog=fish_seafood_help)
+        text_plus_slider("Fish, seafood", "fish_seafood",
+                         help_dialog=fish_seafood_help)
 
         text_plus_slider("Dairy", "dairy",
                          help_dialog=dairy_help)

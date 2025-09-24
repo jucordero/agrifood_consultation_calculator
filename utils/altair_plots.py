@@ -445,3 +445,120 @@ def pie_chart_altair(da, show="Item", unit=""):
     ).resolve_scale(theta='independent').configure_legend(labelFontSize=10)
 
     return c
+
+def plot_bars_altair2(
+        fbs,
+        data_vars,
+        reversed_vars,
+        show="Item",
+        replace_names=None,
+        x_axis_title='',
+        stacked=True,
+        xlimit=None,
+        labels=None,
+        colors=None,
+        horizontal=True,
+        ):
+    """
+    Creates a horizontal stacked bar chart using Altair to visualize various
+    food balance sheet quantities.
+    Parameters:
+
+    -----------
+    food : xarray.Dataset
+        The food balance sheet dataset.
+    show : str, optional
+        The coordinate to use to dissagregate quantities into the bars.
+    x_axis_title : str, optional
+        The title for the x-axis.
+    xlimit : float, optional
+        The upper limit for the x-axis. If None, the limit is determined by the data.
+    labels : list, optional
+        A list of labels for the bars.
+    colors : list, optional
+        A list of colors for the bars.
+
+    Returns:
+    --------
+    alt.Chart
+        An Altair Chart object representing the stacked bar chart.
+    """
+
+    n_origins = len(fbs.Item.values)
+
+    value_vars = data_vars + reversed_vars
+
+    df = fbs.to_dataframe().reset_index().fillna(0)
+    df = df.melt(id_vars=show, value_vars=value_vars)
+    df["value_start"] = 0.
+    df["value_end"] = 0.
+
+    # Rename items for better visualization
+    if replace_names is not None:
+        for (name, new_name) in replace_names:
+            df["Item"] = df["Item"].replace(name, new_name)
+    
+    # If more than one item, stacking is needed
+    if n_origins > 1:
+        for i in range(len(data_vars)*n_origins,len(value_vars)*n_origins):
+            if i % n_origins==0:
+                temp = df.iloc[i].copy()
+                df.iloc[i] = df.iloc[i+1]
+                df.iloc[i+1] = temp
+            else:
+                pass
+
+    max_cumul = 0
+    cumul = 0
+    for i in range(len(data_vars)*n_origins):
+        if not stacked and i % n_origins == 0:
+            cumul = 0
+        df.loc[i, "value_start"] = cumul
+        cumul += df.loc[i, "value"]
+        df.loc[i, "value_end"] = cumul
+        if cumul > max_cumul:
+            max_cumul = cumul
+
+    cumul_inv = 0
+    for i in reversed(range(len(data_vars)*n_origins,len(value_vars)*n_origins)):
+        if not stacked and i % n_origins == 0:
+            cumul_inv = 0
+        df.loc[i, "value_start"] = cumul_inv
+        cumul_inv += df.loc[i, "value"]
+        df.loc[i, "value_end"] = cumul_inv
+        if cumul_inv > max_cumul:
+            max_cumul = cumul_inv
+
+    selection = alt.selection_point(on='mouseover')
+
+    color_encoding = alt.Color('Item', scale=alt.Scale(scheme='category20b'))
+
+    # Set x-axis limit
+    if xlimit is not None:
+        scale=alt.Scale(domain=(0, xlimit))
+    else:
+        scale=alt.Scale(domain=(0, max_cumul))
+
+    if horizontal:
+        # Create the chart
+        c = alt.Chart(df).mark_bar().encode(
+            y = alt.Y('variable', sort=None, axis=alt.Axis(title='')),
+            x2 ='value_start:Q',
+            x = alt.X('value_end:Q', scale=scale, axis=alt.Axis(title=x_axis_title)),
+            color=color_encoding,
+            opacity=alt.condition(selection, alt.value(0.9), alt.value(0.5)),
+            tooltip=['Item:N', 'value:Q'],
+            ).add_params(selection).properties(height=500)
+
+    else:
+        # Create the chart
+        c = alt.Chart(df).mark_bar().encode(
+            x = alt.X('variable', sort=None, axis=alt.Axis(title='')),
+            y2 ='value_start:Q',
+            y = alt.Y('value_end:Q', scale=scale, axis=alt.Axis(title=x_axis_title)),
+            color=color_encoding,
+            opacity=alt.condition(selection, alt.value(0.9), alt.value(0.5)),
+            tooltip=['Item:N', 'value:Q'],
+            ).add_params(selection).properties(width=500)
+
+    return c

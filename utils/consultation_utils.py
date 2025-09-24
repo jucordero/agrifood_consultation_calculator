@@ -26,6 +26,7 @@ sh = gc.open_by_key(st.secrets["scenarios_worksheet_key"])
 
 pathways_worksheet = sh.worksheet(SCENARIOS_WORKSHEET)
 enrolments_worksheet = sh.worksheet("Form responses 2")
+captions_worksheet = sh.worksheet("figure_captions")
 
 @st.cache_data(ttl=60*60*24)
 def get_user_list():
@@ -245,3 +246,10 @@ def get_worksheet_list():
     ws_list = sh.worksheets()
     ws_list_name = [ws.title for ws in ws_list]
     return ws_list_name
+
+@st.cache_data(ttl=60*60*24)
+def get_figure_captions():
+    """Get the list of figure captions from the captions worksheet"""
+
+    caption_list = captions_worksheet.col_values(1)
+    return caption_list
