@@ -251,5 +251,5 @@ def get_worksheet_list():
 def get_figure_captions():
     """Get the list of figure captions from the captions worksheet"""
 
-    caption_list = captions_worksheet.col_values(1)
+    caption_list = captions_worksheet.col_values(1)[1:]
     return caption_list
