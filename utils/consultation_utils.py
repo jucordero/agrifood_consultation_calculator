@@ -141,7 +141,8 @@ def submit_scenario(
             extra_values = [extra_values]
         for i, val in enumerate(extra_values):
             if isinstance(val, xr.DataArray):
-                extra_values[i] = val.to_numpy().item()
+                extra_values[i] = val.to_numpy()
+            extra_values[i] = float(extra_values[i])
         # values_formatted = ['{0:.3f}'.format(val) for val in extra_values]
         row.extend(extra_values)
 

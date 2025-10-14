@@ -10,6 +10,7 @@ from utils.consultation_utils import get_pathways, call_scenarios, submit_scenar
 from agrifoodpy.pipeline import Pipeline
 
 from future_food.pipeline_builder import pipeline_setup
+from future_food.datablock_setup import datablock_setup
 
 timer = Timer()
 
@@ -283,15 +284,20 @@ with st.sidebar:
 run_params = set_run_params_dict()
 
 food_system = Pipeline(cached_datablock_setup(
+# food_system = Pipeline(datablock_setup(
     st.secrets["AES_KEY"],
     st.secrets["AES_IV"],
     advanced_settings))
+
+timer.ping("Datablock setup")
 
 food_system = pipeline_setup(
     food_system,
     run_params,
     advanced_settings,
     )
+
+timer.ping("Pipeline setup")
 
 food_system.run()
 datablock_result = food_system.datablock
