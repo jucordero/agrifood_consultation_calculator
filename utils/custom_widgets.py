@@ -29,6 +29,9 @@ def text_plus_slider(label,
         }
     """
 
+    def on_slider_change(key=key):
+        st.query_params.pop(key, None)
+
     with stylable_container(key=key+"_container", css_styles=style):
         col1, col2, col3 = st.columns((5, 6, 1), vertical_alignment="bottom")
 
@@ -49,6 +52,7 @@ def text_plus_slider(label,
                                     max_value=max_value,
                                     step=step,
                                     key=key,
+                                    on_change=on_slider_change,
                                     label_visibility='collapsed',
                                     format=str_format + suffix)
         @st.fragment

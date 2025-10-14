@@ -10,6 +10,7 @@ from utils.consultation_utils import get_pathways, call_scenarios, submit_scenar
 from agrifoodpy.pipeline import Pipeline
 
 from future_food.pipeline_builder import pipeline_setup
+from future_food.datablock_setup import datablock_setup
 
 timer = Timer()
 
@@ -164,16 +165,14 @@ with st.sidebar:
                          help_dialog=beccs_help)
 
         text_plus_slider("Lowland peat", "lowland_peatland", min_value=0,
-                         help_dialog=waste_help)
+                         help_dialog=peatland_restoration_help)
         
         text_plus_slider("Upland peat", "upland_peatland", min_value=0,
                          help_dialog=peatland_restoration_help)
 
-        text_plus_slider("Horticulture", "horticulture", min_value=-100, max_value=500,
-                         help_dialog=waste_help)
+        text_plus_slider("Horticulture", "horticulture", min_value=-100, max_value=500)
         
-        text_plus_slider("Pulse production", "pulse_production", min_value=-100, max_value=500,
-                         help_dialog=peatland_restoration_help)
+        text_plus_slider("Pulse production", "pulse_production", min_value=-100, max_value=500)
 
         text_plus_slider("Mixed farming", "mixed_farming", min_value=0,
                          help_dialog=mixed_farming_help)
@@ -192,16 +191,16 @@ with st.sidebar:
                           help_dialog=soil_management_help)
 
         text_plus_slider("Methane inhibitors", "methane_inhibitor", min_value=0, max_value=100,
-                         help_dialog=peatland_restoration_help)
+                         help_dialog=methane_inhibitor_help)
         
         text_plus_slider("Manure management", "manure_management", min_value=0, max_value=100,
-                        help_dialog=peatland_restoration_help)
+                        help_dialog=manure_management_help)
         
         text_plus_slider("Animal breeding", "animal_breeding", min_value=0, max_value=100,
-                        help_dialog=peatland_restoration_help)
+                        help_dialog=breeding_help)
         
         text_plus_slider("Fossil fuel use", "fossil_livestock", min_value=0, max_value=100,
-                     help_dialog=peatland_restoration_help)
+                     help_dialog=fossil_livestock_help)
         
         text_plus_slider("Livestock productivity", "livestock_yield", min_value=50, value=100, max_value=150, sign=False)
 
@@ -219,17 +218,17 @@ with st.sidebar:
                             help_dialog=urban_help)
 
         text_plus_slider("Fossil fuel use", "fossil_arable", min_value=0, max_value=100,
-                        help_dialog=peatland_restoration_help)
+                        help_dialog=fossil_arable_help)
         
         text_plus_slider("Nitrogen efficiency", "nitrogen", min_value=0, max_value=100,
-                     help_dialog=peatland_restoration_help)
+                     help_dialog=nitrogen_help)
 
     # Technology and innovation
 
     with st.expander("**:gear: Technology and innovation**"):
         
         text_plus_slider("Waste BECCS", "waste_BECCS", min_value=0,
-                         help_dialog=waste_help, sign=False, percentage=False, 
+                         help_dialog=beccs_waste_help, sign=False, percentage=False, 
                          suffix=" Mt CO2e/yr")
                         
         text_plus_slider("Overseas BECCS", "overseas_BECCS", min_value=0,
@@ -285,15 +284,20 @@ with st.sidebar:
 run_params = set_run_params_dict()
 
 food_system = Pipeline(cached_datablock_setup(
+# food_system = Pipeline(datablock_setup(
     st.secrets["AES_KEY"],
     st.secrets["AES_IV"],
     advanced_settings))
+
+timer.ping("Datablock setup")
 
 food_system = pipeline_setup(
     food_system,
     run_params,
     advanced_settings,
     )
+
+timer.ping("Pipeline setup")
 
 food_system.run()
 datablock_result = food_system.datablock

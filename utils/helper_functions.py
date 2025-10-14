@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import time
 
+from future_food.datablock_setup import datablock_setup
 
 # Helper Functions
 
@@ -257,8 +258,6 @@ def cached_datablock_setup(
     AES_IV,
     advanced_settings
     ):
-
-    from future_food.datablock_setup import datablock_setup
 
     return datablock_setup(
         AES_KEY,
