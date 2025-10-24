@@ -159,15 +159,27 @@ def submit_scenario(
         st.code(url, wrap_lines=True, language=None)
 
 @st.cache_data(ttl=60*60*24)
-def get_pathways():
+def get_pathways(scn_ws=None):
     """Get the pathways names from the Google Sheet"""
+
+    if scn_ws is None:
+        pathways_worksheet = sh.worksheet(SCENARIOS_WORKSHEET)
+
+    else:
+        pathways_worksheet = sh.worksheet(scn_ws)
 
     values = pathways_worksheet.col_values(1)
     return values[3:]
 
 @st.cache_data(ttl=60*60*24)
-def get_pathway_data(pathway_name):
+def get_pathway_data(pathway_name, scn_ws=None):
     """Get the scenario data from the Google Sheet"""
+
+    if scn_ws is None:
+        pathways_worksheet = sh.worksheet(SCENARIOS_WORKSHEET)
+
+    else:
+        pathways_worksheet = sh.worksheet(scn_ws)
 
     # pathways_names
     pathway_names = pathways_worksheet.col_values(1)
@@ -203,9 +215,11 @@ def call_scenarios(scenario=None):
         scenario = st.session_state["scenario"]
         if scenario is None:
             return
+
+    scn_ws = st.session_state["scenario_worksheet"]
     
     # Get the scenario data
-    pathway_data = get_pathway_data(scenario)
+    pathway_data = get_pathway_data(scenario, scn_ws)
 
     # Update the session state
     update_slider(list(pathway_data.keys()), list(pathway_data.values()))

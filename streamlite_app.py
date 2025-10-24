@@ -73,6 +73,16 @@ with st.sidebar:
 #        Sidebar
 # ------------------------
 
+    if "scenario_worksheet" not in st.session_state:
+        st.session_state["scenario_worksheet"] = None
+        
+    if st.secrets["branch"] == "sarah_jp_hack":
+        scn_ws = st.selectbox(
+            "Select the scenario worksheet",
+            options=get_worksheet_list(),
+            key="scenario_worksheet"
+            )
+
     col1, col2 = st.columns([8,2])
 
     with col1:
@@ -82,7 +92,7 @@ with st.sidebar:
             call_scenarios(scenario)
         
             st.selectbox("Scenario",
-                        get_pathways(),
+                        get_pathways(scn_ws),
                         index=None,
                         placeholder=scenario,
                         on_change=call_scenarios,
@@ -91,7 +101,7 @@ with st.sidebar:
         
         else:
             st.selectbox("Scenario",
-                        get_pathways(),
+                        get_pathways(scn_ws),
                         index=None,
                         placeholder="Select a scenario",
                         on_change=call_scenarios,
