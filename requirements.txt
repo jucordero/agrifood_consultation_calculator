@@ -10,6 +10,6 @@ fair
 streamlit-extras==0.4.3
 gspread
 pycryptodome
-agrifoodpy
+git+https://github.com/FixOurFood/agrifoodpy.git
 git+https://github.com/FixOurFood/agrifoodpy-data.git@importable
 git+https://github.com/FixOurFood/future_food.git
