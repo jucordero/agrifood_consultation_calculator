@@ -1,11 +1,27 @@
 import streamlit as st
 from millify import millify
+from utils.altair_plots import plot_bars_altair
+import numpy as np
 
 def energy_production(datablock):
     cols = st.columns(3, border=True)
 
     pctg = datablock["land"]["percentage_land_use"]
+    fbs = datablock["food"]["g/cap/day"]
+    fbs_baseline = datablock["food"]["baseline"]
+
+    meat_items = fbs.sel(Item=fbs.Item_group=="Meat").Item.values
     area_solar_panels_ha = pctg.sel({"aggregate_class":"Solar Panels"}).sum().values
+
+    sheep_fbs = fbs.sel({"Item":[2732]}).isel(Year=-1)
+    sheep_fbs_baseline = fbs_baseline.sel({"Item":[2732]}).isel(Year=-1)
+    sheep_ssr = sheep_fbs.fbs.SSR()
+    sheep_ssr_baseline = sheep_fbs_baseline.fbs.SSR()
+
+    meat_fbs = fbs.sel({"Item":meat_items}).isel(Year=-1)
+    meat_fbs_baseline = fbs_baseline.sel({"Item":meat_items}).isel(Year=-1)
+    meat_ssr =  meat_fbs.fbs.SSR()
+    meat_ssr_baseline = meat_fbs_baseline.fbs.SSR()
 
     # area * efficiency
     energy_production_wh = (
@@ -20,16 +36,51 @@ def energy_production(datablock):
         st.markdown("**Total energy production**")
 
         st.metric(
-            "Total area covered in solar panels",
-            value= f"{millify(area_solar_panels_ha, precision=2)} ha"
-        )
-
-    with cols[1]:
-        st.markdown("**Total energy production**")
-
-        st.metric(
             "Energy from solar panels in pasture land",
             value = f"{millify(energy_production_wh, precision=2)} Wh"
             )
-        
 
+    with cols[1]:
+
+        st.markdown("**Land use change**")
+
+        st.metric(
+            "Total area covered in solar panels",
+            value= f"{millify(area_solar_panels_ha, precision=2)} ha"
+        )
+        
+    with cols[2]:
+        st.markdown("**Impact on food production**")
+
+        for var in list(sheep_fbs.data_vars):
+            sheep_fbs = sheep_fbs.rename({var:var.capitalize()})
+
+        sheep_fbs = sheep_fbs.rename({"Food": "Retail"})
+
+        sheep_production_chart = plot_bars_altair(
+            sheep_fbs,
+            show="Item",
+            x_axis_title="g/cap/day",
+        )
+
+        st.altair_chart(sheep_production_chart)
+
+        cols_ssr = st.columns(3)
+
+        with cols_ssr[0]:
+            st.metric(
+                "Sheep meat SSR",
+                value = "{:.2f} %".format(100*sheep_ssr),
+                delta = "{:.2f} %".format(100*(sheep_ssr-sheep_ssr_baseline))
+            )
+
+        with cols_ssr[1]:
+
+            st.metric(
+                "Meat products SSR",
+                value = "{:.2f} %".format(100*meat_ssr),
+                delta = "{:.2f} %".format(100*(meat_ssr-meat_ssr_baseline))
+            )
+
+        with cols_ssr[2]:
+            pass
