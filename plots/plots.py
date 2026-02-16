@@ -10,6 +10,7 @@ from .per_capita import plot_per_capita
 from .land_use import plot_land_use
 from .self_sufficiency import plot_self_sufficiency
 from .paper_plots import paper_plots
+from .energy_production import energy_production
 
 if st.secrets["branch"] == "sarah_jp_hack":
     option_list.append("Paper plots")
@@ -29,6 +30,7 @@ def plots(datablock):
     #                  Plots
     # ----------------------------------------
     plot_key = st.session_state["plot_key"]
+    st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
 
     # Summary
     if plot_key == "Summary":
@@ -53,4 +55,6 @@ def plots(datablock):
     elif plot_key == "Paper plots":
         paper_plots(datablock)
 
-    st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
+    elif plot_key == "Energy production":
+        energy_production(datablock)
+

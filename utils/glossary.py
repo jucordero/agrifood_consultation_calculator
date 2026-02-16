@@ -75,7 +75,8 @@ option_list = [
     "Annual quantities",
     "Per capita daily values",
     "Land",
-    "Self-sufficiency ratio"
+    "Self-sufficiency ratio",
+    "Energy production"
     ]
 
 FAOSTAT_percapita_items = [
@@ -117,6 +118,7 @@ land_color_dict = {
     'Agroforestry':  "lightblue",
     'Restored upland peat':  "darkred",
     'Restored lowland peat':  "darkred",
+    'Solar Panels': "darkslateblue"
 }
 
 land_label_dict = {
@@ -142,6 +144,7 @@ land_label_dict = {
     'Agroforestry':  "Agroforestry",
     'Restored lowland peat':  "Restored peatland",
     'Restored upland peat':  "Restored peatland",
+    'Solar Panels': "Solar Panels"
 }
 
 # These are the sectoral emissions predicted by the CCC under its "Balanced

@@ -71,7 +71,12 @@ default_widget_values = {
     "waste_BECCS": 0,
     "overseas_BECCS": 0,
     "DACCS": 0,
-    "biochar":0
+    "biochar":0,
+
+    # Energy production
+    "area_solar_panels": 0,
+    "solar_panel_efficiency": 100,
+    "sheep_stock_rate": 8,
 }
 
 def reset_sliders(keys=None):

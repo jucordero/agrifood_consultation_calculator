@@ -243,6 +243,27 @@ with st.sidebar:
                          help_dialog=biochar_help, sign=False, percentage=False,
                          suffix=" Mt CO2e/yr")
 
+    # Energy production
+
+    with st.expander("**:zap: Energy production**"):
+
+        st.markdown("The below slides control the area of pasture land " \
+        "converted to solar panel arrays, the energetic efficiency of solar " \
+        "panels and the stocking rate of sheep on the pasture land to be " \
+        "converted")
+
+        text_plus_slider("Area", "area_solar_panels", min_value=0,
+                         max_value=20, help_dialog=solar_area_help,
+                         sign=False)
+        
+        text_plus_slider("Efficiency", "solar_panel_efficiency", min_value=50,
+                         max_value=200, value=100, help_dialog=solar_efficiency_help,
+                         suffix=" W/m²", sign=False, percentage=False)
+        
+        text_plus_slider("Stocking rate", "sheep_stock_rate", min_value=6, max_value=30,
+                         value=12, help_dialog=sheep_stock_help, suffix=" head/ha", sign=False,
+                         percentage=False)
+
         
     with st.expander("**📈 Scenario settings**"):
 
@@ -296,6 +317,20 @@ food_system = pipeline_setup(
     run_params,
     advanced_settings,
     )
+
+food_system.print_nodes(show_params=False)
+
+from utils.energy_production_model import solar_panels
+food_system.add_node(
+    solar_panels,
+    {
+        "farm_percentage": st.session_state["area_solar_panels"]/100,
+        "sheep_stock_density": st.session_state["sheep_stock_rate"]
+    },
+    name="Solar panels",
+    index=13
+)
+food_system.remove_node(6)
 
 timer.ping("Pipeline setup")
 

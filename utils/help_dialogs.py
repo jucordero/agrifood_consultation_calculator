@@ -516,3 +516,42 @@ def trade_help():
                 change over time with economic conditions. For further
                 discussion, click [here](https://docs.google.com/document/d/1A2J4BYIuXMgrj9tuLtIon8oJTuR1puK91bbUYCI8kHY/edit?tab=t.0#heading=h.5wokskh532mj).
                 """)
+    
+@st.dialog("Fraction of pasture land converted to solar panels", width="small")
+def solar_area_help():
+    st.markdown("""
+                This slider controls the fraction of sheep grazing farms to be
+                converted to solar panel farms.
+
+                Note that this converts land relative to the baseline values of
+                pasture. To prevent running out of pasture land, the fraction is
+                capped at 20% of the total baseline pasture area.
+
+                """)
+    
+@st.dialog("Solar panel energy production efficiency", width="small")
+def solar_efficiency_help():
+    st.markdown("""
+                This slider controls the effective energy production
+                for a solar panel with an area of one square meter.
+
+                The value not only describes the specific efficiency of the
+                solar panel technology, but also accounts for variations on
+                solar exposure due to weather and contamination, field coverage,
+                and downtime.
+                """)
+    
+@st.dialog("Sheep stocking rate", width="small")
+def sheep_stock_help():
+    st.markdown("""
+                This slider defines the average stocking density for sheep in
+                grazing pasture land used in the solar energy production model.
+                
+                This value does not impact baseline production itself. It
+                serves as an indicator of the yield per unit of land.
+
+                A higher stocking rate results in a larger impact on sheep,
+                mutton and goat meat production, since the expected production
+                per hectare is higher.
+                """)
+    
