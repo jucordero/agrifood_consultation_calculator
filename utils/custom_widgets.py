@@ -340,13 +340,12 @@ def selectbox_plus_icon(label,
 @st.fragment
 def collapsable_text(
         text,
-        collapsed,
         key
 ):
     
     # Initialize values
     if key+"_is_open" not in st.session_state:
-        st.session_state[key+"_is_open"] = collapsed
+        st.session_state[key+"_is_open"] = True
 
     if st.session_state[key+"_is_open"]:
         button_label = "Show less"

@@ -103,7 +103,6 @@ with st.sidebar:
     if st.session_state["scenario"] in list(scenarios_descriptions.keys()):
         collapsable_text(
             scenarios_descriptions[st.session_state["scenario"]],
-            st.session_state["scenario_description"],
             key="scenario_description")
 
 
