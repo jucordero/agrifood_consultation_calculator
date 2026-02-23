@@ -3,9 +3,11 @@ import pandas as pd
 
 from utils.altair_plots import *
 from utils.helper_functions import *
-from utils.custom_widgets import text_plus_slider, selectbox_plus_icon
+from utils.custom_widgets import text_plus_slider, selectbox_plus_icon, collapsable_text
+
 from utils.help_dialogs import *
 from utils.consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
+from utils.scenario_descriptions import *
 
 from agrifoodpy.pipeline import Pipeline
 
@@ -97,6 +99,13 @@ with st.sidebar:
                         on_change=call_scenarios,
                         key="scenario",
                         label_visibility="collapsed")
+            
+    if st.session_state["scenario"] in list(scenarios_descriptions.keys()):
+        collapsable_text(
+            scenarios_descriptions[st.session_state["scenario"]],
+            st.session_state["scenario_description"],
+            key="scenario_description")
+
 
     # Only on test branch: Add button to clear pathways cache and reload data
     if st.secrets["branch"] == "sarah_jp_hack":
