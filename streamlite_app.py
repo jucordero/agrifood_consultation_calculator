@@ -6,7 +6,7 @@ from utils.helper_functions import *
 from utils.custom_widgets import text_plus_slider, selectbox_plus_icon, collapsable_text
 
 from utils.help_dialogs import *
-from utils.consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list
+from utils.consultation_utils import get_pathways, call_scenarios, submit_scenario, get_worksheet_list, call_sbc_scenarios
 from utils.scenario_descriptions import *
 
 from agrifoodpy.pipeline import Pipeline
@@ -90,8 +90,13 @@ with st.sidebar:
                         on_change=call_scenarios,
                         key="scenario",
                         label_visibility="collapsed")
-        
+
         else:
+            if "sbc" in st.query_params:
+                sbc_scenario = st.query_params["sbc"]
+                call_sbc_scenarios(sbc_scenario)
+                print("Getting scenario from sbc list")
+        
             st.selectbox("Scenario",
                         get_pathways(),
                         index=None,
