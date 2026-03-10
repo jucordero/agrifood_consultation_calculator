@@ -10,8 +10,11 @@ def energy_production(datablock):
     fbs = datablock["food"]["g/cap/day"]
     fbs_baseline = datablock["food"]["baseline"]
 
-    meat_items = fbs.sel(Item=fbs.Item_group=="Meat").Item.values
-    area_solar_panels_ha = pctg.sel({"aggregate_class":"Solar Panels"}).sum().values
+    meat_items = fbs.sel(Item=fbs.Item_group == "Meat").Item.values
+    area_solar_farms_ha = pctg.sel({"aggregate_class": "Solar Panels"}).sum(
+    ).values 
+
+    area_solar_panels_ha = area_solar_farms_ha * st.session_state["ground_coverage_ratio"]/100
 
     sheep_fbs = fbs.sel({"Item":[2732]}).isel(Year=-1)
     sheep_fbs_baseline = fbs_baseline.sel({"Item":[2732]}).isel(Year=-1)
@@ -23,32 +26,49 @@ def energy_production(datablock):
     meat_ssr =  meat_fbs.fbs.SSR()
     meat_ssr_baseline = meat_fbs_baseline.fbs.SSR()
 
+    installed_maximum_capacity = 10000* area_solar_panels_ha * st.session_state['solar_panel_capacity']
+
     # area * efficiency
     energy_production_wh = (
         area_solar_panels_ha *
         10000 *
-        st.session_state["solar_panel_efficiency"] *
-        365.25 *
-        24
+        st.session_state["solar_panel_capacity"] *
+        st.session_state["specific_yield"]
     )
+
+    prefixes = ["k", "M", "G", "T", "P", "E", "Z"]
 
     with cols[0]:
         st.markdown("**Total energy production**")
 
         st.metric(
-            "Energy from solar panels in pasture land",
-            value = f"{millify(energy_production_wh, precision=2)} Wh"
-            )
+            "Installed maximum capacity",
+            value=f"{millify(installed_maximum_capacity, precision=2, prefixes=prefixes)} Wp",
+            help="Maximum theoretical power the solar panels can produce, under ideal conditions"
+        )
 
+        st.metric(
+            "Total energy produced from solar farms in pasture land",
+            value = f"{millify(energy_production_wh, precision=2)} Wh",
+            help="Total energy produced in Wh per year"
+            )
+        
     with cols[1]:
 
         st.markdown("**Land use change**")
 
         st.metric(
-            "Total area covered in solar panels",
-            value= f"{millify(area_solar_panels_ha, precision=2)} ha"
+            "Total area of pasture land converted to solar farms",
+            value= f"{millify(area_solar_farms_ha, precision=2)} ha",
+            help="Total area of pasture land converted to solar farms, in hectares"
         )
-        
+
+        st.metric(
+            "Total effective area covered in solar panels",
+            value=f"{millify(area_solar_panels_ha, precision=2)} ha",
+            help="Total area of solar panels, in hectares"
+        )
+ 
     with cols[2]:
         st.markdown("**Impact on food production**")
 

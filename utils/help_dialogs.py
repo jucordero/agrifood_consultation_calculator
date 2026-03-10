@@ -527,18 +527,21 @@ def solar_area_help():
                 pasture. To prevent running out of pasture land, the fraction is
                 capped at 20% of the total baseline pasture area.
 
+                Also note that this does not define the total area of solar
+                panels, but only the area of land that is used for solar panel
+                production, and might include other required infrastructure,
+                such as inverters, battery storage systems, cabling, roads, etc.
                 """)
     
-@st.dialog("Solar panel energy production efficiency", width="small")
-def solar_efficiency_help():
+@st.dialog("Solar panel energy production capacity", width="small")
+def solar_capacity_help():
     st.markdown("""
-                This slider controls the effective energy production
-                for a solar panel with an area of one square meter.
-
-                The value not only describes the specific efficiency of the
-                solar panel technology, but also accounts for variations on
-                solar exposure due to weather and contamination, field coverage,
-                and downtime.
+                This slider controls the solar panel energy production efficiency.
+               
+                The value only describes the maximum power output of the
+                solar panel technology under ideal conditions. It does not
+                account for variations on solar exposure due to weather and
+                contamination, field coverage, and downtime.
                 """)
     
 @st.dialog("Sheep stocking rate", width="small")
@@ -554,4 +557,39 @@ def sheep_stock_help():
                 mutton and goat meat production, since the expected production
                 per hectare is higher.
                 """)
+
+
+@st.dialog("Ground coverage fraction", width="small")
+def ground_coverage_help():
+    st.markdown("""
+                This slider defines what fraction of land within a photovoltaic
+                farm is actually covered in solar panels.
+
+                A typical solar array farm also contains infrastructure for 
+                regulating and storing energy (inverters, filters, battery
+                systems), transmission to the grid, and other operations such as
+                roads, fencing, security areas, etc.
+                """)
     
+
+@st.dialog("PV specific yield", width="small")
+def specific_yield_help():
+    st.markdown("""
+                Specific yield describes the expected efficiency of a solar
+                panel array, relative to its maximum performance under ideal
+                conditions.
+
+                It factors in environmental and geographic factors, such as
+                solar irradiance, total sunlight time, shading from trees and
+                clouds, panel contamination, variations in efficiency due to 
+                temperature and load, and other external factors.
+
+                It is quantified as the annual expected energy production in
+                KWh from an installed peak ideal power of 1kW.
+                Maximum ideal power generation for such a system would be 1kW x
+                8760h = 8760, which is number of hours in a year.
+
+                Real systems typically operate at lower efficiencies due to the
+                effects mentioned above, with values for the UK ranging between
+                750 and 1250 kWh/kWp.
+                """)

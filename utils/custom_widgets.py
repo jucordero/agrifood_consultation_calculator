@@ -41,7 +41,11 @@ def text_plus_slider(label,
             #     if help_dialog is not None:
             #         help_dialog()
 
-        str_format = "%+d" if sign else "%d"
+        if isinstance(value, float):
+            str_format = "%+.1f" if sign else "%.1f"
+        else:
+            str_format = "%+d" if sign else "%d"
+
         if percentage:
             str_format += "%%"
 

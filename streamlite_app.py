@@ -252,17 +252,64 @@ with st.sidebar:
         "panels and the stocking rate of sheep on the pasture land to be " \
         "converted")
 
-        text_plus_slider("Area", "area_solar_panels", min_value=0,
-                         max_value=20, help_dialog=solar_area_help,
-                         sign=False)
-        
-        text_plus_slider("Efficiency", "solar_panel_efficiency", min_value=50,
-                         max_value=200, value=100, help_dialog=solar_efficiency_help,
-                         suffix=" W/m²", sign=False, percentage=False)
-        
-        text_plus_slider("Stocking rate", "sheep_stock_rate", min_value=6, max_value=30,
-                         value=12, help_dialog=sheep_stock_help, suffix=" head/ha", sign=False,
-                         percentage=False)
+        text_plus_slider(
+            "Area",
+            "area_solar_panels",
+            min_value=0.0,
+            max_value=5.0,
+            step=0.1,
+            value=0.0,
+            help_dialog=solar_area_help,
+            sign=False
+        )
+
+        text_plus_slider(
+            "Ground coverage ratio",
+            "ground_coverage_ratio",
+            min_value=20,
+            max_value=60,
+            value=35,
+            step = 5,
+            help_dialog=ground_coverage_help,
+            sign=False,
+            percentage=True
+        )
+
+        text_plus_slider(
+            "Solar panel capacity",
+            "solar_panel_capacity",
+            min_value=50,
+            max_value=200,
+            value=100,
+            help_dialog=solar_capacity_help,
+            suffix=" W/m²",
+            sign=False,
+            percentage=False
+        )
+
+        text_plus_slider(
+            "Stocking rate",
+            "sheep_stock_rate",
+            min_value=6,
+            max_value=30,
+            value=12,
+            help_dialog=sheep_stock_help,
+            suffix=" head/ha",
+            sign=False,
+            percentage=False
+        )
+
+        text_plus_slider(
+            "Specific yield",
+            "specific_yield",
+            min_value=750,
+            max_value=1250,
+            value=900,
+            help_dialog=specific_yield_help,
+            suffix=" kWh/kWp",
+            sign=False,
+            percentage=False
+        )
 
         
     with st.expander("**📈 Scenario settings**"):

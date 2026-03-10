@@ -75,8 +75,10 @@ default_widget_values = {
 
     # Energy production
     "area_solar_panels": 0,
-    "solar_panel_efficiency": 100,
-    "sheep_stock_rate": 8,
+    "solar_panel_capacity": 100,
+    "ground_coverage_ratio": 35,
+    "specific_yield": 900,
+    "sheep_stock_rate": 12,
 }
 
 def reset_sliders(keys=None):
