@@ -21,6 +21,10 @@ elif st.secrets["branch"] == "sarah_jp_hack":
     APP_BASE_URL = "https://sarahjp-hack.streamlit.app/"
     SCENARIOS_WORKSHEET = "sarahjp_scenarios"
 
+elif st.secrets["branch"] == "grace_solar_panels":
+    APP_BASE_URL = "https://sarahjp-hack.streamlit.app/"
+    SCENARIOS_WORKSHEET = "GC_energy_production"
+
 gc = gspread.authorize(credentials)
 sh = gc.open_by_key(st.secrets["scenarios_worksheet_key"])
 
