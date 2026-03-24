@@ -146,10 +146,10 @@ with st.sidebar:
         text_plus_slider("Eggs", "eggs",
                          help_dialog=eggs_help)
 
-        text_plus_slider("Fruits, vegetables", "fruit_veg",max_value=500,
+        text_plus_slider("Fruits, vegetables", "fruit_veg",max_value=1000,
                          help_dialog=fruits_veg_help)
         
-        text_plus_slider("Pulses", "pulses", max_value=500,
+        text_plus_slider("Pulses", "pulses", max_value=1500,
                          help_dialog=pulses_help)
 
         text_plus_slider("Alternative meat", "meat_alternatives", min_value=0,
@@ -185,7 +185,7 @@ with st.sidebar:
 
         text_plus_slider("Horticulture", "horticulture", min_value=-100, max_value=500)
         
-        text_plus_slider("Pulse production", "pulse_production", min_value=-100, max_value=500)
+        text_plus_slider("Pulse production", "pulse_production", min_value=-100, max_value=1000)
 
         text_plus_slider("Mixed farming", "mixed_farming", min_value=0,
                          help_dialog=mixed_farming_help)
