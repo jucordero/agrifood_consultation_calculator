@@ -5,9 +5,46 @@ def plot_annual_quantities(datablock):
     col_element, col_opt, col_y, col_sel = st.columns([1,1,1,1])
 
     with col_element:
-        element_key = st.selectbox("Food Supply Element", ["Livestock", "production", "food", "imports", "exports", "feed"], format_func=lambda x: x.title())
+        element_key = st.selectbox("Food Supply Element", ["Emissions", "Livestock", "production", "food", "imports", "exports", "feed"], format_func=lambda x: x.title())
 
-    if element_key != "Livestock":
+    if element_key == "Livestock":
+
+        to_plot = datablock["metrics"]["livestock"]
+
+        with col_opt:
+            dissagregation = st.multiselect("Type", to_plot["Item"].values)
+        sel = {}
+        if len(dissagregation) > 0:
+            sel = {"Item": dissagregation}
+
+        to_plot = to_plot.sel(sel)
+
+        f = plot_years_altair(to_plot, show="Item")
+        f=f.configure_axis(
+            labelFontSize=15,
+            titleFontSize=15)
+        st.altair_chart(f, use_container_width=True)
+
+    elif element_key == "Emissions":
+
+        to_plot = datablock["metrics"]["emissions_balance"].fillna(0).sel(Year=slice(2025, None))
+
+        sector_order = list(sector_emissions_colors.keys())
+        to_plot = to_plot.sel(Sector=sector_order, drop=True)
+
+        f = plot_years_altair(
+            to_plot,
+            show="Sector",
+            ylabel="Mt CO2e/year",
+            ymin=-100,
+            ymax=450,
+            colors=sector_emissions_colors.values())
+        f=f.configure_axis(
+            labelFontSize=15,
+            titleFontSize=15)
+        st.altair_chart(f, use_container_width=True)
+
+    else:
 
         with col_opt:
             dissagregation = st.selectbox("Plot options", ["Item_group", "Item_origin", "Item_name"], format_func=lambda x: x.replace("_"," "))
@@ -34,23 +71,6 @@ def plot_annual_quantities(datablock):
             labelFontSize=15,
             titleFontSize=15)
         
-        st.altair_chart(f, use_container_width=True)
-
-    else:
-        to_plot = datablock["metrics"]["livestock"]
-
-        with col_opt:
-            dissagregation = st.multiselect("Type", to_plot["Item"].values)
-        sel = {}
-        if len(dissagregation) > 0:
-            sel = {"Item": dissagregation}
-
-        to_plot = to_plot.sel(sel)
-
-        f = plot_years_altair(to_plot, show="Item")
-        f=f.configure_axis(
-            labelFontSize=15,
-            titleFontSize=15)
         st.altair_chart(f, use_container_width=True)
 
         
