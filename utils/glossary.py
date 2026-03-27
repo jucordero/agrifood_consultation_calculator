@@ -145,8 +145,19 @@ land_label_dict = {
     'Restored upland peat':  "Restored peatland",
 }
 
-# These are the sectoral emissions predicted by the CCC under its "Balanced
-# Pathway" scenario. From the 6th carbon budget report (2020).
+
+# CB7 charts and data in report >> 3.6 >> AK13:AK25
+# These are the sectoral emissions reported in the CB7 report.
+
+# Buildings are calculated as the sum of residential and non-residential emissions
+
+# For the removals sector, the value corresponds to "BECCS - other", which
+# we do not assume to originate from land use change.
+# Taken from 7.12.1 >> BB13:BB17
+
+# LU sinks and Agriculture are intentionally left at 0, as the model will
+# calculate the values from production and sequestration from land.
+
 sector_emissions_dict = {
     "F-gases": 1.60,
     "Waste": 5.11,

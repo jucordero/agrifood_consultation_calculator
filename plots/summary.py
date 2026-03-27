@@ -27,19 +27,19 @@ def map_max(map, dim):
 def plot_summary(datablock, background_color):
 
     reference_emissions_baseline = st.secrets["baseline_total_emissions"]
-
     col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
+
+    metric_yr = st.session_state["plots_year"]
 
     with col_comp_1:
 
         # Emissions and removals balance
         with st.container(height=850, border=True):
 
-            emissions_balance = datablock["metrics"]["emissions_balance"]
-            total_seq = datablock["metrics"]["total_sequestration"]
-            total_removals = datablock["metrics"]["total_removals"]
-            total_emissions = datablock["metrics"]["total_emissions"]
-            agricultural_emissions = datablock["metrics"]["agricultural_emissions"]
+            emissions_balance = datablock["metrics"]["emissions_balance"].sel(Year=metric_yr)
+            total_seq = datablock["metrics"]["total_sequestration"].sel(Year=metric_yr)
+            total_removals = datablock["metrics"]["total_removals"].sel(Year=metric_yr)
+            agricultural_emissions = datablock["metrics"]["agricultural_emissions"].sel(Year=metric_yr)
             reference_afolu_emissions = st.secrets["baseline_afolu_emissions"]
             
             st.markdown('''**UK Emissions balance**''')
@@ -48,10 +48,14 @@ def plot_summary(datablock, background_color):
                 emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
                 reference_emissions_baseline = reference_afolu_emissions
 
+            sector_order = list(reversed(sector_emissions_colors.keys()))
+            emissions_balance = emissions_balance.sel(Sector=sector_order, drop=True)
+
             c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                 axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
                 mark_total=True, show_zero=True, ax_ticks=True, legend=True,
-                ax_min=-80, ax_max=120, reference=reference_emissions_baseline)
+                # ax_min=-80, ax_max=120, reference=reference_emissions_baseline)
+                ax_min=-80, ax_max=120, reference = 0)
                 
             c = c.properties(height=450)
             # c = c.configure(background='white').configure_axisLeft(labelColor='black', titleColor='black').configure_legend(labelColor='black', titleColor='black')
@@ -86,9 +90,9 @@ def plot_summary(datablock, background_color):
         ssr_metric = st.session_state["ssr_metric"]
         with st.container(height=375, border=True):
 
-            SSR_ref = datablock["metrics"]["SSR_ref"]
-            SSR_metric_yr = datablock["metrics"]["SSR_metric_yr"]
-            gcapday = datablock["metrics"]["gcapday_item_origin"]
+            SSR_ref = datablock["metrics"]["SSR_ref"].sel(Year=2020)
+            SSR_metric_yr = datablock["metrics"]["SSR_metric_yr"].sel(Year=metric_yr)
+            gcapday = datablock["metrics"]["gcapday_item_origin"].sel(Year=metric_yr)
 
             st.markdown('''**Self-sufficiency**''')
 
@@ -180,13 +184,14 @@ def plot_summary(datablock, background_color):
         # Production
         with st.container(height=392+75, border=True):
 
+            total_emissions = datablock["metrics"]["total_emissions"].sel(Year=metric_yr)
+            ssr_metric_yr = datablock["metrics"]["SSR_metric_yr"].sel(Year=metric_yr)
+
             st.markdown('''**UK as farm**''')
 
             data = {
-                "total_emissions": float(datablock["metrics"]["total_emissions"]),
-                "self_sufficiency": float(
-                    datablock["metrics"]["SSR_metric_yr"].values
-                ),  #  TOOD check if right metric
+                "total_emissions": float(total_emissions),
+                "self_sufficiency": float(ssr_metric_yr),
                 "dairy_herd": float(
                     datablock["metrics"]["new_dairy_herd"].isel(Year=-1).values
                 )

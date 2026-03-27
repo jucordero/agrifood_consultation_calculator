@@ -3,7 +3,7 @@ from utils.altair_plots import *
 
 def plot_per_capita(datablock):
 
-    metric_yr = 2050
+    metric_yr = st.session_state.plots_year
 
     per_cap_options = {"g/cap/day": 5000,
                    "g_prot/cap/day": 250,
