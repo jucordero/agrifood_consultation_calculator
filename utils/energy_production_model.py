@@ -44,7 +44,6 @@ def solar_panels(
     total_sheep_not_produced = delta_spared.sum().values * sheep_stock_density
 
     new_production_fraction = 1 - total_sheep_not_produced / baseline_flock_size
-    print(new_production_fraction)
 
     food_orig = datablock["food"]["g/cap/day"]
     scale_spare = logistic_food_supply(food_orig, timescale, 1, new_production_fraction)

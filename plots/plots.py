@@ -30,7 +30,22 @@ def plots(datablock):
     #                  Plots
     # ----------------------------------------
     plot_key = st.session_state["plot_key"]
-    st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
+
+    col_options, col_year = st.columns([1,1])
+    
+    with col_options:
+        st.selectbox("Choose from the options below to explore a more detailed breakdown of your selected pathway", option_list, on_change=update_plot_key, key="update_plot_key")
+    
+    with col_year:
+        st.slider(
+            "Year",
+            min_value=2025,
+            max_value=2050,
+            value=2050,
+            step=5,
+            key="plots_year",
+            # label_visibility="collapsed",
+        )
 
     # Summary
     if plot_key == "Summary":

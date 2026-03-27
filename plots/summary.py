@@ -25,34 +25,19 @@ def map_max(map, dim):
 def plot_summary(datablock, background_color):
 
     reference_emissions_baseline = st.secrets["baseline_total_emissions"]
-
-    if not st.session_state["embedding"]:
-        with st.expander("**Future Food Calculator - The UK in 2050**", expanded=True):
-            st.write("""Click on an aspect of the food system you would like to change - on
-                    the left side of the page. Move the sliders to explore how different
-                    interventions in the food system impact the UK emissions balance,
-                    self-sufficiency, and land use. Alternatively, select a scenario
-                    from the dropdown menu on the top of the sidebar to automatically
-                    position sliders to pre-set values. Detailed charts describing the
-                    effects of interventions on different aspects of the food system
-                    can be found in the dropdown menu at the bottom of the page.""")
-            st.write("""Challenge: can you move the sliders to get the UK to net zero
-                    (diamond is at zero)? Are you happy with this solution? If so, submit
-                    your proposed solution at the bottom of this page!
-                    """)
-            
     col_comp_1, col_comp_2, col_comp_3 = st.columns([1,1,1])
+
+    metric_yr = st.session_state["plots_year"]
 
     with col_comp_1:
 
         # Emissions and removals balance
         with st.container(height=850, border=True):
 
-            emissions_balance = datablock["metrics"]["emissions_balance"]
-            total_seq = datablock["metrics"]["total_sequestration"]
-            total_removals = datablock["metrics"]["total_removals"]
-            total_emissions = datablock["metrics"]["total_emissions"]
-            agricultural_emissions = datablock["metrics"]["agricultural_emissions"]
+            emissions_balance = datablock["metrics"]["emissions_balance"].sel(Year=metric_yr)
+            total_seq = datablock["metrics"]["total_sequestration"].sel(Year=metric_yr)
+            total_removals = datablock["metrics"]["total_removals"].sel(Year=metric_yr)
+            agricultural_emissions = datablock["metrics"]["agricultural_emissions"].sel(Year=metric_yr)
             reference_afolu_emissions = st.secrets["baseline_afolu_emissions"]
             
             st.markdown('''**UK Emissions balance**''')
@@ -61,10 +46,14 @@ def plot_summary(datablock, background_color):
                 emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
                 reference_emissions_baseline = reference_afolu_emissions
 
+            sector_order = list(reversed(sector_emissions_colors.keys()))
+            emissions_balance = emissions_balance.sel(Sector=sector_order, drop=True)
+
             c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                 axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
                 mark_total=True, show_zero=True, ax_ticks=True, legend=True,
-                ax_min=-80, ax_max=120, reference=reference_emissions_baseline)
+                # ax_min=-80, ax_max=120, reference=reference_emissions_baseline)
+                ax_min=-80, ax_max=120, reference = 0)
                 
             c = c.properties(height=450)
             # c = c.configure(background='white').configure_axisLeft(labelColor='black', titleColor='black').configure_legend(labelColor='black', titleColor='black')
@@ -99,9 +88,9 @@ def plot_summary(datablock, background_color):
         ssr_metric = st.session_state["ssr_metric"]
         with st.container(height=375, border=True):
 
-            SSR_ref = datablock["metrics"]["SSR_ref"]
-            SSR_metric_yr = datablock["metrics"]["SSR_metric_yr"]
-            gcapday = datablock["metrics"]["gcapday_item_origin"]
+            SSR_ref = datablock["metrics"]["SSR_ref"].sel(Year=2020)
+            SSR_metric_yr = datablock["metrics"]["SSR_metric_yr"].sel(Year=metric_yr)
+            gcapday = datablock["metrics"]["gcapday_item_origin"].sel(Year=metric_yr)
 
             st.markdown('''**Self-sufficiency**''')
 

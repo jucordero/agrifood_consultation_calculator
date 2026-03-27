@@ -35,9 +35,9 @@ def plot_years_altair(food, show="Item", ylabel=None, colors=None, ymin=None, ym
 
     # Set yaxis limits
     if ymax is None:
-        ymax = food.sum(dim="Item").max().item()
+        ymax = food.sum(dim=show).max().item()
     if ymin is None:
-        ymin = food.sum(dim="Item").min().item()
+        ymin = food.sum(dim=show).min().item()
         if ymin > 0: ymin = 0
 
     # Create dataframe for altair

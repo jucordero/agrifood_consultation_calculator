@@ -365,7 +365,6 @@ food_system = pipeline_setup(
     advanced_settings,
     )
 
-food_system.print_nodes(show_params=False)
 
 from utils.energy_production_model import solar_panels
 food_system.add_node(
@@ -380,6 +379,33 @@ food_system.add_node(
 food_system.remove_node(6)
 
 timer.ping("Pipeline setup")
+
+food_system.print_nodes(show_params=False)
+
+food_system.remove_node(32)
+from utils.compute_metrics import compute_metrics
+
+food_system.add_node(
+    compute_metrics,
+    name="Compute metrics",
+    index=32
+)
+
+from agrifoodpy.utils.nodes import load_dataset
+
+from agrifoodpy_data.impact import CB7_balanced_pathway_sector
+
+food_system.add_node(
+    load_dataset,
+    name="Load Dataset",
+    params={
+        "datablock_path": "balanced_pathway",
+        "module": "agrifoodpy_data.impact",
+        "data_attr": "CB7_balanced_pathway_sector",
+        "da":"Emissions: direct emissions total"
+    },
+    index=0
+)
 
 food_system.run()
 datablock_result = food_system.datablock
