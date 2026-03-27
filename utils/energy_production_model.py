@@ -9,16 +9,17 @@ def solar_panels(
         land_type=["Improved grassland", "Semi-natural grassland"],
         new_land_type="Solar Panels",
         baseline_flock_size=31016701,
-        sheep_stock_density=12
+        sheep_stock_density=12,
+        t_init=2021,
+        timescale=20
         ):
     """Replaces pasture land with solar panels, reducing the amount of food
     production, and increasing the amount of energy produced.
     """
 
-    timescale = datablock["global_parameters"]["timescale"]
+    # timescale = datablock["global_parameters"]["timescale"]
     pctg_baseline = datablock["land"]["baseline"].copy(deep=True)
     pctg = datablock["land"]["percentage_land_use"].copy(deep=True)
-    old_use = datablock["land"]["percentage_land_use"].sel({"aggregate_class":land_type}).sum()
 
     to_spare = pctg_baseline.sel({"aggregate_class":land_type})
 
@@ -46,7 +47,7 @@ def solar_panels(
     new_production_fraction = 1 - total_sheep_not_produced / baseline_flock_size
 
     food_orig = datablock["food"]["g/cap/day"]
-    scale_spare = logistic_food_supply(food_orig, timescale, 1, new_production_fraction)
+    scale_spare = logistic_food_supply(food_orig, t_init, timescale, 1, new_production_fraction)
 
     # scaled_items = food_orig.sel(Item=food_orig.Item_origin=="Vegetal Products").Item.values
     scaled_items = get_items(food_orig, items)
@@ -66,6 +67,7 @@ def solar_panels(
 
 def logistic_food_supply(
         fbs,
+        t_init,
         timescale,
         c_init,
         c_end
@@ -74,8 +76,8 @@ def logistic_food_supply(
     supply"""
 
     y0 = fbs.Year.values[0]
-    y1 = 2021
-    y2 = 2021 + timescale
+    y1 = t_init
+    y2 = t_init + timescale
     y3 = fbs.Year.values[-1]
 
     scale = logistic_scale(y0, y1, y2, y3, c_init=c_init, c_end=c_end)

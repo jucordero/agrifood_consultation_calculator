@@ -311,6 +311,28 @@ with st.sidebar:
             percentage=False
         )
 
+        text_plus_slider(
+            "Initial year",
+            "t_init_solar_panels",
+            min_value=2025,
+            max_value=2050,
+            value=2025,
+            help_dialog=initial_year_help,
+            sign=False,
+            percentage=False
+        )
+
+        text_plus_slider(
+            "Transition timescale",
+            "solar_panels_timescale",
+            min_value=5,
+            max_value=25,
+            value=10,
+            sign=False,
+            percentage=False
+        )
+
+
         
     with st.expander("**📈 Scenario settings**"):
 
@@ -371,7 +393,9 @@ food_system.add_node(
     solar_panels,
     {
         "farm_percentage": st.session_state["area_solar_panels"]/100,
-        "sheep_stock_density": st.session_state["sheep_stock_rate"]
+        "sheep_stock_density": st.session_state["sheep_stock_rate"],
+        "t_init": st.session_state["t_init_solar_panels"],
+        "timescale": st.session_state["solar_panels_timescale"],
     },
     name="Solar panels",
     index=13

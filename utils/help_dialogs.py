@@ -593,3 +593,15 @@ def specific_yield_help():
                 effects mentioned above, with values for the UK ranging between
                 750 and 1250 kWh/kWp.
                 """)
+
+@st.dialog("Initial year of transition", width="small")
+def initial_year_help():
+    st.markdown("""
+                This slider defines the initial year of transition for the
+                solar panel land use change model. The model assumes a logistic
+                growth in the transition from pasture land to solar panel
+                land, with the transition starting in the year defined by this
+                slider and reaching its maximum after a period defined by the
+                timescale slider.
+                """)
+
