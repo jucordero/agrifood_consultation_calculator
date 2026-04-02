@@ -325,8 +325,6 @@ food_system.add_node(
 
 from agrifoodpy.utils.nodes import load_dataset
 
-from agrifoodpy_data.impact import CB7_balanced_pathway_sector
-
 food_system.add_node(
     load_dataset,
     name="Load Dataset",
