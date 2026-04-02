@@ -1,6 +1,6 @@
 import streamlit as st
 from millify import millify
-from utils.altair_plots import plot_bars_altair, plot_years_altair
+from utils.altair_plots import plot_bars_altair2, plot_years_altair
 from agrifoodpy.utils.scaling import logistic_scale
 import numpy as np
 import altair as alt
@@ -50,14 +50,21 @@ def energy_production(datablock):
 
     energy_production_wh_arr = area_solar_panels_ha_arr * 10000 * st.session_state["solar_panel_capacity"] * st.session_state["specific_yield"]
     energy_production_wh = energy_production_wh_arr.sel({"Year":metric_yr})
+
+    energy_production_ds = datablock["energy"].copy(deep=True)
+
+    energy_production_ds["production"].loc[{"Item":"Primary electricity"}] += energy_production_wh_arr / 1e12 # Convert from Wh to TWh
+    energy_production_ds["demand"].loc[{"Item":"Primary electricity"}] += energy_production_wh_arr / 1e12 # Convert from Wh to TWh
     
-    # # area * efficiency
-    # energy_production_wh = (
-    #     area_solar_panels_ha *
-    #     10000 *
-    #     st.session_state["solar_panel_capacity"] *
-    #     st.session_state["specific_yield"]
-    # )
+    energy_production_ds["demand"].loc[{"Item":"Natural gas"}] -= energy_production_wh_arr / 1e12 # Convert from Wh to TWh
+    energy_production_ds["imports"].loc[{"Item":"Natural gas"}] -= energy_production_wh_arr / 1e12 # Convert from Wh to TWh
+
+    energy_ssr = energy_production_ds.fbs.SSR().sel(Year=metric_yr)
+    energy_ssr_baseline = energy_production_ds.fbs.SSR().sel(Year=2025)
+
+    # -----
+    # plots
+    # ----- 
 
     prefixes = ["k", "M", "G", "T", "P", "E", "Z"]
 
@@ -95,7 +102,7 @@ def energy_production(datablock):
                 help="Total area of solar panels, in hectares"
             )
 
-        with st.container(border=True, height=400):
+        with st.container(border=True, height=500):
 
             data_dict = {
                 "Converted pasture land": area_solar_farms_ha_arr,
@@ -129,37 +136,70 @@ def energy_production(datablock):
  
     with cols[1]:
         with st.container(border=True):
-            st.markdown("**Impact on food production**")
-
-            for var in list(sheep_fbs.data_vars):
-                sheep_fbs = sheep_fbs.rename({var:var.capitalize()})
-
-            sheep_fbs = sheep_fbs.rename({"Food": "Retail"})
-
-            sheep_production_chart = plot_bars_altair(
-                sheep_fbs,
-                show="Item",
-                x_axis_title="g/cap/day",
+            fbs_to_chart = st.selectbox(
+                "Select food balance element to plot",
+                options=["Sheep production", "Energy production"]
             )
 
-            st.altair_chart(sheep_production_chart)
+            if fbs_to_chart == "Sheep production":
+                st.markdown("**Impact on food production**")
 
-            cols_ssr = st.columns(3)
+                for var in list(sheep_fbs.data_vars):
+                    sheep_fbs = sheep_fbs.rename({var:var.capitalize()})
 
-            with cols_ssr[0]:
-                st.metric(
-                    "Sheep meat SSR",
-                    value = "{:.2f} %".format(100*sheep_ssr),
-                    delta = "{:.2f} %".format(100*(sheep_ssr-sheep_ssr_baseline))
+                sheep_fbs = sheep_fbs.rename({"Food": "Retail"})
+                sheep_fbs = sheep_fbs.fbs.group_sum(coordinate="Item_name", new_name="Item")            
+
+                sheep_production_chart = plot_bars_altair2(
+                    sheep_fbs,
+                    show="Item",
+                    data_vars=["Production", "Imports"],
+                    reversed_vars=["Exports", "Retail"],
+                    x_axis_title="g/cap/day",
                 )
 
-            with cols_ssr[1]:
+                st.altair_chart(sheep_production_chart)
 
-                st.metric(
-                    "Meat products SSR",
-                    value = "{:.2f} %".format(100*meat_ssr),
-                    delta = "{:.2f} %".format(100*(meat_ssr-meat_ssr_baseline))
+                cols_ssr = st.columns(3)
+
+                with cols_ssr[0]:
+                    st.metric(
+                        "Sheep meat SSR",
+                        value = "{:.2f} %".format(100*sheep_ssr),
+                        delta = "{:.2f} %".format(100*(sheep_ssr-sheep_ssr_baseline))
+                    )
+
+                with cols_ssr[1]:
+
+                    st.metric(
+                        "Meat products SSR",
+                        value = "{:.2f} %".format(100*meat_ssr),
+                        delta = "{:.2f} %".format(100*(meat_ssr-meat_ssr_baseline))
+                    )
+
+                with cols_ssr[2]:
+                    pass
+            
+            elif fbs_to_chart == "Energy production":
+                st.markdown("**Energy production**")
+
+                to_plot = energy_production_ds.sel(Year=metric_yr)
+
+                energy_production_chart = plot_bars_altair2(
+                    to_plot,
+                    show="Item",
+                    data_vars=["production", "imports"],
+                    reversed_vars=["exports", "demand"],
+                    x_axis_title="Energy production [TWh]",
                 )
 
-            with cols_ssr[2]:
-                pass
+                st.altair_chart(energy_production_chart)
+
+                cols_ssr = st.columns(3)
+
+                with cols_ssr[0]:
+                    st.metric(
+                        "Energy SSR",
+                        value = "{:.2f} %".format(100*energy_ssr),
+                        delta = "{:.2f} %".format(100*(energy_ssr-energy_ssr_baseline))
+                    )

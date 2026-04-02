@@ -387,8 +387,8 @@ food_system = pipeline_setup(
     advanced_settings,
     )
 
+from utils.energy_production_model import solar_panels, energy_balance_sheet
 
-from utils.energy_production_model import solar_panels
 food_system.add_node(
     solar_panels,
     {
@@ -417,8 +417,6 @@ food_system.add_node(
 
 from agrifoodpy.utils.nodes import load_dataset
 
-from agrifoodpy_data.impact import CB7_balanced_pathway_sector
-
 food_system.add_node(
     load_dataset,
     name="Load Dataset",
@@ -430,6 +428,11 @@ food_system.add_node(
     },
     index=0
 )
+
+food_system.add_node(
+    energy_balance_sheet,
+    index=0,
+    )
 
 food_system.run()
 datablock_result = food_system.datablock

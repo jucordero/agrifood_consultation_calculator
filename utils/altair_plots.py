@@ -531,7 +531,7 @@ def plot_bars_altair2(
 
     selection = alt.selection_point(on='mouseover')
 
-    color_encoding = alt.Color('Item', scale=alt.Scale(scheme='category20b'))
+    color_encoding = alt.Color('Item:N', scale=alt.Scale(scheme='category20b'))
 
     # Set x-axis limit
     if xlimit is not None:

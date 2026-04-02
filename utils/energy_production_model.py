@@ -94,3 +94,41 @@ def get_items(
     elif np.isscalar(items):
         items = [items]
     return items
+
+def energy_balance_sheet(datablock):
+    """Creates an energy balance sheet with the same structure as the food balance
+    sheet, but with energy production and imports instead of food production
+    and imports."""
+
+    energy_ds = xr.Dataset(
+        data_vars={
+            "production": (("Year", "Item"),    np.array([[77,	    0,	    33298,	0,	    29566,	14193,	17713,	0,	    0]])),
+            "imports": (("Year", "Item"),       np.array([[1163,	967,	52407,	35065,	38977,	6581,	0,	    3760,	0]])),
+            "exports": (("Year", "Item"),       np.array([[726,	    5,	    30944,	20741,	10183,	590,	0,	    888,	0]])),
+            "demand": (("Year", "Item"),        np.array([[1446,	1097,	55413,	11640,	58578,	20178,	17713,	2928,	0]])),
+        },
+        coords={
+            "Year": [2024],
+            "Item": [
+                "Coal",
+                "Manufactured fuel",
+                "Primary oils",
+                "Petroleum products",
+                "Natural gas",
+                "Bioenergy & waste",
+                "Primary electricity",
+                "Electricity",
+                "Heat sold"
+                ],
+        }
+    )
+
+    # Convert from mteo to TWh
+    energy_ds *= 0.01163
+
+    energy_ds = energy_ds.reindex(Year=list(range(2020, 2051)), fill_value=None)
+    energy_ds = energy_ds.fillna(energy_ds.sel(Year=2024))
+
+    datablock["energy"] = energy_ds
+
+    return datablock
