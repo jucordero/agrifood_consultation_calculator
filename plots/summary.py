@@ -43,13 +43,13 @@ def plot_summary(datablock, background_color):
             reference_afolu_emissions = st.secrets["baseline_afolu_emissions"]
             
             st.markdown('''**UK Emissions balance**''')
+
+            sector_order = list(reversed(sector_emissions_colors.keys()))
+            emissions_balance = emissions_balance.sel(Sector=sector_order, drop=True)
                 
             if st.session_state["show_afolu_only"]:
                 emissions_balance = emissions_balance.sel(Sector=["Agriculture", "LU sinks", "Removals"])
                 reference_emissions_baseline = reference_afolu_emissions
-
-            sector_order = list(reversed(sector_emissions_colors.keys()))
-            emissions_balance = emissions_balance.sel(Sector=sector_order, drop=True)
 
             c = plot_single_bar_altair(emissions_balance, show="Sector", color=sector_emissions_colors,
                 axis_title="Mt CO2e / year", unit="Mt CO2e / year", vertical=True,
