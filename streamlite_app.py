@@ -288,6 +288,17 @@ with st.sidebar:
         advanced_settings["baseline_afolu_emissions"] = st.secrets["baseline_afolu_emissions"]
         advanced_settings["ssr_metric"] = st.session_state["ssr_metric"]
 
+        advanced_settings_query_param_keys = np.intersect1d(list(advanced_settings.keys()), list(st.query_params.keys()))
+
+        if len(advanced_settings_query_param_keys) > 0:
+            advanced_settings_query_param_values = [
+                float(st.query_params[k]) if st.query_params[k].replace('.', '', 1).lstrip('-').isdigit() 
+                else st.query_params[k] 
+                for k in advanced_settings_query_param_keys
+            ]
+            for k, v in zip(advanced_settings_query_param_keys, advanced_settings_query_param_values):
+                advanced_settings[k] = v
+
     timer.ping("Sidebar setup")
 
 # ----------------------------------------
