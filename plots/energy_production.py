@@ -14,27 +14,17 @@ def energy_production(datablock):
     fbs = datablock["food"]["g/cap/day"]
     fbs_baseline = datablock["food"]["baseline"]
 
+    area_solar_farms_ha_arr = datablock["area_solar_farms_ha_arr"]
+    area_solar_panels_ha_arr = datablock["area_solar_panels_ha_arr"]
+    installed_maximum_capacity_arr = datablock["installed_maximum_capacity_arr"]
+    energy_production_wh_arr = datablock["energy_production_wh_arr"]
+
     metric_yr = st.session_state["plots_year"]
 
-    # Logistic adoption curve
-    unit_logistic = logistic_scale(
-        y0=2020,
-        y1=st.session_state["t_init_solar_panels"],
-        y2=st.session_state["t_init_solar_panels"] + st.session_state["solar_panels_timescale"],
-        y3=2050,
-        c_init=0,
-        c_end=1
-    )
-
+    # 
     meat_items = fbs.sel(Item=fbs.Item_group == "Meat").Item.values
-    area_solar_farms_ha_arr = pctg.sel({"aggregate_class": "Solar Panels"}).sum(
-    ).values * unit_logistic
 
-    area_solar_farms_ha = area_solar_farms_ha_arr.sel({"Year":metric_yr})
-
-    area_solar_panels_ha_arr = unit_logistic * area_solar_farms_ha * st.session_state["ground_coverage_ratio"]/100
-    area_solar_panels_ha = area_solar_panels_ha_arr.sel({"Year":metric_yr})
-
+    # Food metrics
     sheep_fbs = fbs.sel({"Item":[2732]}).sel(Year=metric_yr)
     sheep_fbs_baseline = fbs_baseline.sel({"Item":[2732]}).isel(Year=-1)
     sheep_ssr = sheep_fbs.fbs.SSR()
@@ -45,10 +35,11 @@ def energy_production(datablock):
     meat_ssr =  meat_fbs.fbs.SSR()
     meat_ssr_baseline = meat_fbs_baseline.fbs.SSR()
 
-    installed_maximum_capacity_arr = 10000* area_solar_panels_ha_arr * st.session_state['solar_panel_capacity']
-    installed_maximum_capacity = installed_maximum_capacity_arr.sel({"Year":metric_yr})
 
-    energy_production_wh_arr = area_solar_panels_ha_arr * 10000 * st.session_state["solar_panel_capacity"] * st.session_state["specific_yield"]
+    # Energy production metrics
+    area_solar_farms_ha = area_solar_farms_ha_arr.sel({"Year":metric_yr})
+    area_solar_panels_ha = area_solar_panels_ha_arr.sel({"Year":metric_yr})
+    installed_maximum_capacity = installed_maximum_capacity_arr.sel({"Year":metric_yr})
     energy_production_wh = energy_production_wh_arr.sel({"Year":metric_yr})
 
     energy_production_ds = datablock["energy"].copy(deep=True)
@@ -61,6 +52,9 @@ def energy_production(datablock):
 
     energy_ssr = energy_production_ds.fbs.SSR().sel(Year=metric_yr)
     energy_ssr_baseline = energy_production_ds.fbs.SSR().sel(Year=2025)
+
+    # Emissions metrics
+    energy_sector_emissions = datablock["balanced_pathway"].sel(Sector="Electricity supply")
 
     # -----
     # plots
@@ -105,10 +99,11 @@ def energy_production(datablock):
         with st.container(border=True, height=500):
 
             data_dict = {
-                "Converted pasture land": area_solar_farms_ha_arr,
-                "Total energy produced": energy_production_wh_arr,
-                "Installed maximum capacity": installed_maximum_capacity_arr,
-                "Area covered in solar panels": area_solar_panels_ha_arr
+                "Converted pasture land [ha]": area_solar_farms_ha_arr,
+                "Total energy produced [TWh]": energy_production_wh_arr,
+                "Installed maximum capacity [GW]": installed_maximum_capacity_arr,
+                "Area covered in solar panels [ha]": area_solar_panels_ha_arr,
+                "Electricity supply emissions [Mt CO2e]": energy_sector_emissions
             }
 
             metric_to_plot = st.selectbox(

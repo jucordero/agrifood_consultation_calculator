@@ -396,6 +396,9 @@ food_system.add_node(
         "sheep_stock_density": st.session_state["sheep_stock_rate"],
         "t_init": st.session_state["t_init_solar_panels"],
         "timescale": st.session_state["solar_panels_timescale"],
+        "ground_coverage_ratio": st.session_state["ground_coverage_ratio"]/100,
+        "solar_panel_capacity": st.session_state["solar_panel_capacity"],
+        "specific_yield": st.session_state["specific_yield"]
     },
     name="Solar panels",
     index=13

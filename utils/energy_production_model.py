@@ -8,6 +8,9 @@ def solar_panels(
         items=2732,
         land_type=["Improved grassland", "Semi-natural grassland"],
         new_land_type="Solar Panels",
+        solar_panel_capacity=0.3,
+        specific_yield=1200,
+        ground_coverage_ratio=0.5,
         baseline_flock_size=31016701,
         sheep_stock_density=12,
         t_init=2021,
@@ -37,11 +40,65 @@ def solar_panels(
     else:
         pctg.loc[{"aggregate_class":new_land_type}] += delta_spared
 
+    unit_logistic = logistic_scale(
+        y0=2020,
+        y1=t_init,
+        y2=t_init + timescale,
+        y3=2050,
+        c_init=0,
+        c_end=1
+    )
+
+    area_solar_farms_ha_arr = pctg.sel({"aggregate_class": "Solar Panels"}).sum(
+    ).values * unit_logistic
+    area_solar_panels_ha_arr = area_solar_farms_ha_arr * ground_coverage_ratio
+    
+    datablock["area_solar_farms_ha_arr"] = area_solar_farms_ha_arr
+    datablock["area_solar_panels_ha_arr"] = area_solar_panels_ha_arr
+    datablock["installed_maximum_capacity_arr"] = 10000 * area_solar_panels_ha_arr * solar_panel_capacity
+    datablock["energy_production_wh_arr"] = area_solar_panels_ha_arr * 10000 * solar_panel_capacity * specific_yield
+    
+    # Recompute emissions balance
+
+    emissions_sector = datablock["balanced_pathway"]
+
+    baseline_electricity_emissions = xr.DataArray(
+        data = [43.77, 32.44, 36.74, 40.80, 47.38, 53.27, 56.20],
+        coords={"Year": [2020, 2025, 2030, 2035, 2040, 2045, 2050]},
+        name="Electricity"
+    ).interp(Year=emissions_sector.Year.values)
+
+    BP_solar_capacity = xr.DataArray(
+        data = [16.24, 37.84, 70.01, 82.15, 94.27, 106.4],
+        coords={"Year": [2020, 2030, 2035, 2040, 2045, 2050]},
+        name="Solar panel capacity"
+    ).interp(Year=emissions_sector.Year.values)
+
+    BP_total_capacity = xr.DataArray(
+        data = [119.0, 197., 269., 311., 352., 394.],
+        coords={"Year": [2020, 2030, 2035, 2040, 2045, 2050]},
+        name="Total capacity"
+    ).interp(Year=emissions_sector.Year.values)
+
+    delta_solar_capacity = BP_solar_capacity - datablock["installed_maximum_capacity_arr"]/1e9 - 16.24
+    delta_solar_capacity = delta_solar_capacity.where(delta_solar_capacity > 0, 0)
+    
+    delta_emissions = emissions_sector.sel(Sector="Electricity supply") - baseline_electricity_emissions
+    added_emissions = delta_solar_capacity / BP_total_capacity * delta_emissions
+    
+    BP_gas_capacity = xr.DataArray(
+        data = [34.88, 33.69, 29.71, 22.90, 13.00, 0.0],
+        coords={"Year": [2020, 2030, 2035, 2040, 2045, 2050]},
+        name="Gas capacity"
+    ).interp(Year=emissions_sector.Year.values)
+
+    emissions_sector.loc[{"Sector":"Electricity supply"}] -= added_emissions
+    datablock["balanced_pathway"] = emissions_sector
+    
     # Add spared class to the land use map
     datablock["land"]["percentage_land_use"] = pctg
 
     # Scale food production and imports
-
     total_sheep_not_produced = delta_spared.sum().values * sheep_stock_density
 
     new_production_fraction = 1 - total_sheep_not_produced / baseline_flock_size
