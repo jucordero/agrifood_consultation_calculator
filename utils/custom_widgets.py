@@ -12,7 +12,8 @@ def text_plus_slider(label,
                      help_dialog=None,
                      percentage=True,
                      sign=True,
-                     suffix=""):
+                     suffix="",
+                     disabled=False):
     """
     A custom widget that combines a label, a clickable help icon and a slider.
     """
@@ -31,6 +32,7 @@ def text_plus_slider(label,
 
     def on_slider_change(key=key):
         st.query_params.pop(key, None)
+        st.query_params.pop("sbc", None)
 
     with stylable_container(key=key+"_container", css_styles=style):
         col1, col2, col3 = st.columns((5, 6, 1), vertical_alignment="bottom")
@@ -54,7 +56,9 @@ def text_plus_slider(label,
                                     key=key,
                                     on_change=on_slider_change,
                                     label_visibility='collapsed',
-                                    format=str_format + suffix)
+                                    format=str_format + suffix,
+                                    disabled=disabled
+                                    )
         @st.fragment
         def help_button():
             if st.button(":material/help:", key="help_icon_"+key, type="tertiary"):
