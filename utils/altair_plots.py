@@ -484,7 +484,7 @@ def plot_bars_altair2(
         An Altair Chart object representing the stacked bar chart.
     """
 
-    n_origins = len(fbs.Item.values)
+    n_origins = len(fbs[show].values)
 
     value_vars = data_vars + reversed_vars
 
@@ -496,7 +496,7 @@ def plot_bars_altair2(
     # Rename items for better visualization
     if replace_names is not None:
         for (name, new_name) in replace_names:
-            df["Item"] = df["Item"].replace(name, new_name)
+            df[show] = df[show].replace(name, new_name)
     
     # If more than one item, stacking is needed
     if n_origins > 1:
@@ -531,7 +531,7 @@ def plot_bars_altair2(
 
     selection = alt.selection_point(on='mouseover')
 
-    color_encoding = alt.Color('Item', scale=alt.Scale(scheme='category20b'))
+    color_encoding = alt.Color(f'{show}:N', scale=alt.Scale(scheme='category20b'))
 
     # Set x-axis limit
     if xlimit is not None:
@@ -547,8 +547,21 @@ def plot_bars_altair2(
             x = alt.X('value_end:Q', scale=scale, axis=alt.Axis(title=x_axis_title)),
             color=color_encoding,
             opacity=alt.condition(selection, alt.value(0.9), alt.value(0.5)),
-            tooltip=['Item:N', 'value:Q'],
+            tooltip=[f'{show}:N', 'value:Q'],
             ).add_params(selection).properties(height=500)
+
+        # Add a separator between standard and reversed variables.
+        if len(data_vars) > 0 and len(reversed_vars) > 0:
+            separator_df = pd.DataFrame({"separator_var": [data_vars[-1]]})
+            separator = alt.Chart(separator_df).mark_rule(
+                strokeDash=[6, 4],
+                color="red",
+                size=1,
+            ).encode(
+                y=alt.Y('separator_var:N', sort=None, bandPosition=0.5),
+                yOffset=alt.value(40)
+            )
+            c = c + separator
 
     else:
         # Create the chart
@@ -558,7 +571,7 @@ def plot_bars_altair2(
             y = alt.Y('value_end:Q', scale=scale, axis=alt.Axis(title=x_axis_title)),
             color=color_encoding,
             opacity=alt.condition(selection, alt.value(0.9), alt.value(0.5)),
-            tooltip=['Item:N', 'value:Q'],
+            tooltip=[f'{show}:N', 'value:Q'],
             ).add_params(selection).properties(width=500)
 
     return c
